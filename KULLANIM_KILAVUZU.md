@@ -1,9 +1,17 @@
 # Kullanım Kılavuzu — Mimar Sinan Göktaş Masaüstü Programı
 
 ## Başlatma
+
+### Kurulum dosyası ile (Setup)
+1. `MsgoktasMu_Setup.exe` dosyasını çalıştırın
+2. Kurulum sihirbazını tamamlayın
+3. Başlat menüsünden **Mimar Sinan Göktaş — Şantiye Takip** programını açın
+
+### Geliştirme / kaynak kod ile
 1. `BASLAT.bat` dosyasına çift tıklayın  
    veya `MsgoktasMu` klasöründe `dotnet run` komutunu çalıştırın
-2. İlk açılışta veritabanı (`msgoktas_mu.db`) otomatik oluşur
+
+İlk açılışta veritabanı (`msgoktas_mu.db`) otomatik oluşur.
 
 
 ---

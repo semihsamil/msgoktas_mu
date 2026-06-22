@@ -6,10 +6,17 @@
 - [İhtiyaç Analizi](IHTIYAC_ANALIZI.md) — değerlendirme kriteri 1
 - [Kullanım Kılavuzu](KULLANIM_KILAVUZU.md) — değerlendirme kriteri 6
 
-## Çalıştırma
+## Çalıştırma (geliştirme)
 ```bat
 BASLAT.bat
 ```
+
+## Setup (kurulum paketi)
+Kullanıcıya dağıtılacak `.exe` kurulum dosyası için: **[SETUP_KILAVUZU.md](SETUP_KILAVUZU.md)**
+
+Kısa özet:
+1. `PUBLISH.bat` — yayın dosyalarını üretir
+2. `BUILD_SETUP.bat` — `setup\output\MsgoktasMu_Setup.exe` oluşturur (Inno Setup 6 gerekir)
 
 ## Admin
 - Kullanıcı: `admin`

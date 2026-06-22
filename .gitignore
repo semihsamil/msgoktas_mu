@@ -1,6 +1,8 @@
 # Build
 bin/
 obj/
+publish/
+setup/output/
 *.user
 *.suo
 
