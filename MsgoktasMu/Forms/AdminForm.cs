@@ -16,6 +16,7 @@ internal sealed class AdminForm : Form
     private TextBox? _siteDescription;
     private int? _editingSiteId;
     private Label? _siteStatus;
+    private bool _suppressSiteListEvent;
     private DataGridView? _usersGrid;
     private TextBox? _contactEmail;
     private TextBox? _contactPhone;
@@ -89,61 +90,85 @@ internal sealed class AdminForm : Form
     private TabPage BuildGeneralTab()
     {
         var page = new TabPage("Genel Bilgiler");
-        var split = new SplitContainer { Dock = DockStyle.Fill, Orientation = Orientation.Horizontal, SplitterDistance = 260 };
+        var split = new SplitContainer { Dock = DockStyle.Fill, Orientation = Orientation.Horizontal, SplitterDistance = 400 };
 
-        _sitesList = new ListView { Dock = DockStyle.Fill, View = View.Details, FullRowSelect = true };
-        _sitesList.Columns.Add("Ad", 180);
-        _sitesList.Columns.Add("Adres", 260);
-        _sitesList.SelectedIndexChanged += (_, _) => LoadSelectedSite();
+        var siteArea = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10), BackColor = AppTheme.Background };
 
-        var siteButtons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 40 };
-        var btnNew = UiFactory.CreateButton("Yeni", primary: false, width: 80);
-        btnNew.Click += (_, _) => ClearSiteForm();
-        var btnDelete = UiFactory.CreateButton("Sil", primary: false, width: 80);
-        btnDelete.Click += (_, _) => DeleteSite();
-        siteButtons.Controls.Add(btnNew);
-        siteButtons.Controls.Add(btnDelete);
+        var formBox = AppTheme.CreateGroupBox("Şantiye Ekle / Düzenle");
+        formBox.Dock = DockStyle.Top;
+        formBox.AutoSize = true;
+        formBox.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        formBox.Padding = new Padding(12, 18, 12, 12);
 
-        var siteTop = AppTheme.CreateGroupBox("Şantiye Bilgileri");
-        siteTop.Dock = DockStyle.Top;
-        siteTop.Height = 320;
-        _siteName = AppTheme.CreateInput(placeholder: "Şantiye adı");
+        _siteName = AppTheme.CreateInput(placeholder: "Zorunlu alan");
         _siteAddress = AppTheme.CreateInput(placeholder: "Adres");
         _sitePhone = AppTheme.CreateInput(placeholder: "Telefon");
         _siteLat = AppTheme.CreateInput(placeholder: "39.7477");
         _siteLng = AppTheme.CreateInput(placeholder: "37.0179");
-        _siteDescription = AppTheme.CreateMultilineInput(56);
-        _siteStatus = new Label { Dock = DockStyle.Top, Height = 22, ForeColor = AppTheme.Success, Font = AppTheme.BodyFont };
+        _siteDescription = AppTheme.CreateMultilineInput(44);
 
-        var siteGrid = AppTheme.CreateFormGrid(6);
-        AppTheme.AddFormRow(siteGrid, 0, "Şantiye adı *", _siteName);
-        AppTheme.AddFormRow(siteGrid, 1, "Adres", _siteAddress);
-        AppTheme.AddFormRow(siteGrid, 2, "Telefon", _sitePhone);
-        AppTheme.AddFormRow(siteGrid, 3, "Enlem", _siteLat, "Sayı girin, örn: 39.7477");
-        AppTheme.AddFormRow(siteGrid, 4, "Boylam", _siteLng, "Sayı girin, örn: 37.0179");
-        AppTheme.AddFormRow(siteGrid, 5, "Açıklama", _siteDescription);
+        var grid = AppTheme.CreateFormGrid(6);
+        AppTheme.AddFormRow(grid, 0, "Şantiye adı *", _siteName);
+        AppTheme.AddFormRow(grid, 1, "Adres", _siteAddress);
+        AppTheme.AddFormRow(grid, 2, "Telefon", _sitePhone);
+        AppTheme.AddFormRow(grid, 3, "Enlem", _siteLat);
+        AppTheme.AddFormRow(grid, 4, "Boylam", _siteLng);
+        AppTheme.AddFormRow(grid, 5, "Açıklama", _siteDescription);
+        formBox.Controls.Add(grid);
 
-        var btnSaveSite = UiFactory.CreateButton("Şantiyeyi Kaydet", primary: true, width: 130);
-        btnSaveSite.Click += (_, _) => SaveSite();
-        var siteFormButtons = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 40, Padding = new Padding(0, 4, 0, 0) };
-        siteFormButtons.Controls.Add(btnSaveSite);
+        var actionBar = new Panel
+        {
+            Dock = DockStyle.Bottom,
+            Height = 54,
+            BackColor = AppTheme.SurfaceMuted,
+            Padding = new Padding(8, 8, 8, 6),
+        };
+        var btnSave = UiFactory.CreateButton("Kaydet", primary: true, width: 110, height: 36);
+        btnSave.Click += (_, _) => SaveSite();
+        var btnNew = UiFactory.CreateButton("Yeni", primary: false, width: 90, height: 36);
+        btnNew.Click += (_, _) => ClearSiteForm();
+        var btnDelete = UiFactory.CreateButton("Sil", primary: false, width: 90, height: 36);
+        btnDelete.Click += (_, _) => DeleteSite();
+        var actions = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.LeftToRight, WrapContents = false };
+        actions.Controls.Add(btnSave);
+        actions.Controls.Add(btnNew);
+        actions.Controls.Add(btnDelete);
+        actionBar.Controls.Add(actions);
 
-        siteTop.Controls.Add(_siteStatus);
-        siteTop.Controls.Add(siteFormButtons);
-        siteTop.Controls.Add(siteGrid);
+        _siteStatus = new Label
+        {
+            Dock = DockStyle.Bottom,
+            Height = 24,
+            ForeColor = AppTheme.TextMuted,
+            Font = AppTheme.BodyFont,
+            TextAlign = ContentAlignment.MiddleLeft,
+            Padding = new Padding(4, 0, 0, 0),
+        };
 
-        var sitePanel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(8) };
-        sitePanel.Controls.Add(_sitesList);
-        sitePanel.Controls.Add(siteButtons);
-        sitePanel.Controls.Add(new Label { Text = "Kayıtlı şantiyeler", Dock = DockStyle.Top, Height = 22, Font = new Font("Segoe UI", 9F, FontStyle.Bold) });
+        var listBox = AppTheme.CreateGroupBox("Kayıtlı Şantiyeler (düzenlemek için seçin)");
+        listBox.Dock = DockStyle.Fill;
+        listBox.Padding = new Padding(10, 16, 10, 10);
+        _sitesList = new ListView { Dock = DockStyle.Fill, View = View.Details, FullRowSelect = true, BorderStyle = BorderStyle.None };
+        _sitesList.Columns.Add("Şantiye", 200);
+        _sitesList.Columns.Add("Adres", 320);
+        _sitesList.SelectedIndexChanged += (_, _) =>
+        {
+            if (!_suppressSiteListEvent)
+                LoadSelectedSite();
+        };
+        listBox.Controls.Add(_sitesList);
 
-        split.Panel1.Controls.Add(sitePanel);
-        split.Panel1.Controls.Add(siteTop);
+        siteArea.Controls.Add(listBox);
+        siteArea.Controls.Add(_siteStatus);
+        siteArea.Controls.Add(actionBar);
+        siteArea.Controls.Add(formBox);
+
+        split.Panel1.Controls.Add(siteArea);
         split.Panel2.Controls.Add(new FileManagerControl("general", allowManage: true) { Dock = DockStyle.Fill });
-        split.Panel2.Controls.Add(new Label { Text = "Genel dosyalar", Dock = DockStyle.Top, Height = 22, Font = new Font("Segoe UI", 9F, FontStyle.Bold), Padding = new Padding(8, 8, 0, 0) });
 
         page.Controls.Add(split);
         ReloadSites();
+        ClearSiteForm();
         return page;
     }
 
@@ -296,27 +321,44 @@ internal sealed class AdminForm : Form
         _siteLat!.Text = site.Lat;
         _siteLng!.Text = site.Lng;
         _siteDescription!.Text = site.Description;
+        SetSiteStatus($"'{site.Name}' düzenleniyor — değişiklikten sonra Kaydet'e basın.", AppTheme.TextMuted);
     }
 
     private void ClearSiteForm()
     {
+        _suppressSiteListEvent = true;
         _editingSiteId = null;
-        if (_sitesList != null)
-            _sitesList.SelectedIndices.Clear();
+        _sitesList?.SelectedIndices.Clear();
+        _suppressSiteListEvent = false;
         _siteName!.Text = "";
         _siteAddress!.Text = "";
         _sitePhone!.Text = "";
         _siteLat!.Text = "";
         _siteLng!.Text = "";
         _siteDescription!.Text = "";
-        _siteStatus!.Text = "";
+        SetSiteStatus("Yeni şantiye için alanları doldurup Kaydet'e basın.", AppTheme.TextMuted);
+        _siteName.Focus();
+    }
+
+    private void SetSiteStatus(string message, Color color)
+    {
+        if (_siteStatus == null) return;
+        _siteStatus.Text = message;
+        _siteStatus.ForeColor = color;
     }
 
     private void SaveSite()
     {
+        if (string.IsNullOrWhiteSpace(_siteName!.Text))
+        {
+            SetSiteStatus("Şantiye adı zorunlu. Lütfen ad alanını doldurun.", AppTheme.Error);
+            _siteName.Focus();
+            return;
+        }
+
         var input = new ConstructionSiteInput
         {
-            Name = _siteName!.Text,
+            Name = _siteName.Text,
             Address = _siteAddress!.Text,
             Phone = _sitePhone!.Text,
             Lat = _siteLat!.Text,
@@ -329,18 +371,19 @@ internal sealed class AdminForm : Form
             if (_editingSiteId.HasValue)
             {
                 LocalDatabase.UpdateSite(_editingSiteId.Value, input);
-                _siteStatus!.Text = "Şantiye güncellendi.";
+                SetSiteStatus("Şantiye kaydedildi (güncellendi).", AppTheme.Success);
             }
             else
             {
                 var id = LocalDatabase.AddSite(input);
                 _editingSiteId = id;
-                _siteStatus!.Text = "Şantiye eklendi.";
+                SetSiteStatus("Şantiye kaydedildi (yeni eklendi).", AppTheme.Success);
             }
             ReloadSites();
         }
         catch (Exception ex)
         {
+            SetSiteStatus(ex.Message, AppTheme.Error);
             UiFactory.ShowError(ex.Message);
         }
     }

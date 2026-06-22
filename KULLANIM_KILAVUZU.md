@@ -48,9 +48,10 @@
 Admin girişinden sonra panel açılır.
 
 ### Genel Bilgiler
-- **Şantiye Bilgileri** kutusundan yeni şantiye ekleyin veya listeden seçip düzenleyin  
-- **Kaydet** ile kaydedin, **Sil** ile silin  
-- Alt bölümden genel dosya yükleyin  
+1. Üstteki formda şantiye bilgilerini yazın (ad zorunlu)
+2. **Kaydet** düğmesine basın
+3. Listeden bir şantiye seçerek düzenleyebilir, **Yeni** ile temiz form açabilirsiniz
+4. Alt bölümden genel dosya yükleyin
 
 ### Dosya Sekmeleri (Rapor / Not / Çizelge)
 - **Dosya Ekle** → bilgisayardan seçin  
