@@ -1,36 +1,24 @@
 # Mimar Sinan Göktaş — Masaüstü (msgoktas_mu)
 
-Web sitesi (`sinan_goktas-v2`) ile **aynı içerik ve işlevleri** taşıyan, ancak **tamamen ayrı veritabanı** kullanan C# WinForms uygulaması.
+Şantiye takip programı — web sitesiyle aynı işlev, **ayrı veritabanı**.
 
-- Web veritabanı: `sinan_goktas-v2/database.db`
-- Masaüstü veritabanı: `MsgoktasMu/msgoktas_mu.db` (ilk çalıştırmada oluşur)
-
-## Gereksinimler
-
-- .NET 8 SDK
-- Windows
+## Belgeler
+- [İhtiyaç Analizi](IHTIYAC_ANALIZI.md) — değerlendirme kriteri 1
+- [Kullanım Kılavuzu](KULLANIM_KILAVUZU.md) — değerlendirme kriteri 6
 
 ## Çalıştırma
-
 ```bat
 BASLAT.bat
 ```
 
-veya
-
-```bat
-cd MsgoktasMu
-dotnet run
-```
-
-## Varsayılan admin
-
-- Kullanıcı adı: `admin`
+## Admin
+- Kullanıcı: `admin`
 - Şifre: `admin123`
 
 ## Özellikler
+- Çoklu şantiye yönetimi, dosya paylaşımı (4 kategori)
+- Rol tabanlı giriş (admin / personel / kullanıcı)
+- Menü çubuğu, yardım ekranı, giriş doğrulama ve hata uyarıları
 
-- Ana sayfa, şantiye listesi, dosya görüntüleme, harita, iletişim
-- Giriş / kayıt (Personel, Kullanıcı)
-- Admin paneli: şantiye CRUD, dosya yükleme (4 kategori), kullanıcı yönetimi (şifre dahil), iletişim & harita ayarları
-- İş takibi ekranı (personel / kullanıcı)
+## Veritabanı
+- `MsgoktasMu/msgoktas_mu.db` — web sitesinden bağımsız

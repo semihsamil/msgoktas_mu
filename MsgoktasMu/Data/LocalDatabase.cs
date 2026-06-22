@@ -292,6 +292,10 @@ internal static class LocalDatabase
 
     public static void SaveSettings(AppSettings settings)
     {
+        var err = ValidationHelper.ValidateSettings(settings);
+        if (err != null)
+            throw new InvalidOperationException(err);
+
         using var conn = OpenConnection();
         SaveSetting(conn, "contact_email", settings.ContactEmail);
         SaveSetting(conn, "contact_phone", settings.ContactPhone);

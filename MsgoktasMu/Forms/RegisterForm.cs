@@ -138,9 +138,10 @@ internal sealed class RegisterForm : Form
 
         var userErr = ValidationHelper.ValidateUsername(username) ?? ValidationHelper.ValidatePassword(password);
         var phoneErr = ValidationHelper.ValidatePhone(phone);
-        if (userErr != null || phoneErr != null)
+        var nameErr = ValidationHelper.ValidateFullNameOptional(_fullName.Text.Trim());
+        if (userErr != null || phoneErr != null || nameErr != null)
         {
-            _status.Text = userErr ?? phoneErr ?? "Geçersiz bilgi";
+            _status.Text = userErr ?? phoneErr ?? nameErr ?? "Geçersiz bilgi";
             return;
         }
 

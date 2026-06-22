@@ -51,8 +51,28 @@ internal sealed class AdminForm : Form
 
         BuildTabs();
 
+        MainMenuStrip = BuildAdminMenu();
         Controls.Add(_tabs);
         Controls.Add(top);
+        Controls.Add(MainMenuStrip);
+    }
+
+    private MenuStrip BuildAdminMenu()
+    {
+        var menu = new MenuStrip { BackColor = AppTheme.Surface, Font = AppTheme.BodyFont };
+        var help = new ToolStripMenuItem("Yardım");
+        help.DropDownItems.Add("Kullanım Kılavuzu", null, (_, _) =>
+        {
+            using var form = new HelpForm("Admin");
+            form.ShowDialog(this);
+        });
+        help.DropDownItems.Add("Hakkında", null, (_, _) =>
+        {
+            using var form = new AboutForm();
+            form.ShowDialog(this);
+        });
+        menu.Items.Add(help);
+        return menu;
     }
 
     private void BuildTabs()
@@ -84,34 +104,33 @@ internal sealed class AdminForm : Form
         siteButtons.Controls.Add(btnNew);
         siteButtons.Controls.Add(btnDelete);
 
-        var siteTop = new Panel { Dock = DockStyle.Top, Height = 280, Padding = new Padding(8) };
-        _siteName = AppTheme.CreateInput();
-        _siteAddress = AppTheme.CreateInput();
-        _sitePhone = AppTheme.CreateInput();
-        _siteLat = AppTheme.CreateInput();
-        _siteLng = AppTheme.CreateInput();
-        _siteDescription = AppTheme.CreateMultilineInput(60);
-        _siteStatus = new Label { Dock = DockStyle.Top, Height = 20, ForeColor = Color.DarkGreen };
+        var siteTop = AppTheme.CreateGroupBox("Şantiye Bilgileri");
+        siteTop.Dock = DockStyle.Top;
+        siteTop.Height = 320;
+        _siteName = AppTheme.CreateInput(placeholder: "Şantiye adı");
+        _siteAddress = AppTheme.CreateInput(placeholder: "Adres");
+        _sitePhone = AppTheme.CreateInput(placeholder: "Telefon");
+        _siteLat = AppTheme.CreateInput(placeholder: "39.7477");
+        _siteLng = AppTheme.CreateInput(placeholder: "37.0179");
+        _siteDescription = AppTheme.CreateMultilineInput(56);
+        _siteStatus = new Label { Dock = DockStyle.Top, Height = 22, ForeColor = AppTheme.Success, Font = AppTheme.BodyFont };
+
+        var siteGrid = AppTheme.CreateFormGrid(6);
+        AppTheme.AddFormRow(siteGrid, 0, "Şantiye adı *", _siteName);
+        AppTheme.AddFormRow(siteGrid, 1, "Adres", _siteAddress);
+        AppTheme.AddFormRow(siteGrid, 2, "Telefon", _sitePhone);
+        AppTheme.AddFormRow(siteGrid, 3, "Enlem", _siteLat, "Sayı girin, örn: 39.7477");
+        AppTheme.AddFormRow(siteGrid, 4, "Boylam", _siteLng, "Sayı girin, örn: 37.0179");
+        AppTheme.AddFormRow(siteGrid, 5, "Açıklama", _siteDescription);
 
         var btnSaveSite = UiFactory.CreateButton("Şantiyeyi Kaydet", primary: true, width: 130);
         btnSaveSite.Click += (_, _) => SaveSite();
-        var siteFormButtons = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 40 };
+        var siteFormButtons = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 40, Padding = new Padding(0, 4, 0, 0) };
         siteFormButtons.Controls.Add(btnSaveSite);
 
         siteTop.Controls.Add(_siteStatus);
         siteTop.Controls.Add(siteFormButtons);
-        siteTop.Controls.Add(_siteDescription);
-        siteTop.Controls.Add(AppTheme.CreateFieldLabel("Açıklama"));
-        siteTop.Controls.Add(_siteLng);
-        siteTop.Controls.Add(AppTheme.CreateFieldLabel("Boylam"));
-        siteTop.Controls.Add(_siteLat);
-        siteTop.Controls.Add(AppTheme.CreateFieldLabel("Enlem"));
-        siteTop.Controls.Add(_sitePhone);
-        siteTop.Controls.Add(AppTheme.CreateFieldLabel("Telefon"));
-        siteTop.Controls.Add(_siteAddress);
-        siteTop.Controls.Add(AppTheme.CreateFieldLabel("Adres"));
-        siteTop.Controls.Add(_siteName);
-        siteTop.Controls.Add(AppTheme.CreateFieldLabel("Şantiye adı *"));
+        siteTop.Controls.Add(siteGrid);
 
         var sitePanel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(8) };
         sitePanel.Controls.Add(_sitesList);
@@ -138,6 +157,16 @@ internal sealed class AdminForm : Form
     private TabPage BuildUsersTab()
     {
         var page = new TabPage("Kullanıcılar");
+        var info = new Label
+        {
+            Dock = DockStyle.Top,
+            Height = 36,
+            Text = "Satırı düzenleyin, ardından Seçiliyi Kaydet düğmesine basın.",
+            ForeColor = AppTheme.TextMuted,
+            Font = AppTheme.BodyFont,
+            Padding = new Padding(8, 8, 8, 0),
+        };
+
         _usersGrid = new DataGridView
         {
             Dock = DockStyle.Fill,
@@ -179,6 +208,7 @@ internal sealed class AdminForm : Form
         page.Controls.Add(_usersGrid);
         page.Controls.Add(_usersStatus);
         page.Controls.Add(buttons);
+        page.Controls.Add(info);
         ReloadUsers();
         return page;
     }
@@ -200,22 +230,33 @@ internal sealed class AdminForm : Form
     private TabPage BuildSettingsTab()
     {
         var page = new TabPage("İletişim & Harita");
-        var panel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(16), AutoScroll = true, Width = 520 };
+        var panel = AppTheme.CreateGroupBox("Site Ayarları");
+        panel.Dock = DockStyle.Top;
+        panel.Height = 380;
+        panel.AutoSize = false;
         var settings = LocalDatabase.GetSettings();
 
-        _contactEmail = AppTheme.CreateInput();
+        _contactEmail = AppTheme.CreateInput(placeholder: "info@ornek.com");
         _contactEmail.Text = settings.ContactEmail;
-        _contactPhone = AppTheme.CreateInput();
+        _contactPhone = AppTheme.CreateInput(placeholder: "+90 346 ...");
         _contactPhone.Text = settings.ContactPhone;
-        _contactAddress = AppTheme.CreateInput();
+        _contactAddress = AppTheme.CreateInput(placeholder: "Adres");
         _contactAddress.Text = settings.ContactAddress;
-        _mapLat = AppTheme.CreateInput();
+        _mapLat = AppTheme.CreateInput(placeholder: "39.7477");
         _mapLat.Text = settings.MapLat;
-        _mapLng = AppTheme.CreateInput();
+        _mapLng = AppTheme.CreateInput(placeholder: "37.0179");
         _mapLng.Text = settings.MapLng;
-        _mapLabel = AppTheme.CreateInput();
+        _mapLabel = AppTheme.CreateInput(placeholder: "Harita etiketi");
         _mapLabel.Text = settings.MapLabel;
-        _settingsStatus = new Label { Dock = DockStyle.Top, Height = 20, ForeColor = Color.DarkGreen };
+        _settingsStatus = new Label { Dock = DockStyle.Top, Height = 22, ForeColor = AppTheme.Success, Font = AppTheme.BodyFont };
+
+        var grid = AppTheme.CreateFormGrid(6);
+        AppTheme.AddFormRow(grid, 0, "E-posta *", _contactEmail);
+        AppTheme.AddFormRow(grid, 1, "Telefon *", _contactPhone);
+        AppTheme.AddFormRow(grid, 2, "Adres", _contactAddress);
+        AppTheme.AddFormRow(grid, 3, "Enlem *", _mapLat);
+        AppTheme.AddFormRow(grid, 4, "Boylam *", _mapLng);
+        AppTheme.AddFormRow(grid, 5, "Harita etiketi", _mapLabel);
 
         var btnSave = UiFactory.CreateButton("Ayarları Kaydet", primary: true, width: 140);
         btnSave.Click += (_, _) => SaveSettings();
@@ -224,18 +265,7 @@ internal sealed class AdminForm : Form
 
         panel.Controls.Add(_settingsStatus);
         panel.Controls.Add(buttons);
-        panel.Controls.Add(_mapLabel);
-        panel.Controls.Add(AppTheme.CreateFieldLabel("Harita etiketi"));
-        panel.Controls.Add(_mapLng);
-        panel.Controls.Add(AppTheme.CreateFieldLabel("Boylam"));
-        panel.Controls.Add(_mapLat);
-        panel.Controls.Add(AppTheme.CreateFieldLabel("Enlem"));
-        panel.Controls.Add(_contactAddress);
-        panel.Controls.Add(AppTheme.CreateFieldLabel("Adres"));
-        panel.Controls.Add(_contactPhone);
-        panel.Controls.Add(AppTheme.CreateFieldLabel("Telefon"));
-        panel.Controls.Add(_contactEmail);
-        panel.Controls.Add(AppTheme.CreateFieldLabel("E-posta"));
+        panel.Controls.Add(grid);
 
         page.Controls.Add(panel);
         return page;
@@ -349,12 +379,13 @@ internal sealed class AdminForm : Form
     {
         if (_usersGrid?.CurrentRow == null) return;
         var row = _usersGrid.CurrentRow;
+        var roleValue = ValidationHelper.NormalizeRole(Convert.ToString(row.Cells["Role"].Value) ?? "personel");
         var user = new UserRecord
         {
             Id = Convert.ToInt32(row.Cells["Id"].Value),
             Username = Convert.ToString(row.Cells["Username"].Value) ?? "",
             Password = Convert.ToString(row.Cells["Password"].Value) ?? "",
-            Role = Convert.ToString(row.Cells["Role"].Value) ?? "personel",
+            Role = roleValue,
             FullName = Convert.ToString(row.Cells["FullName"].Value) ?? "",
             Phone = Convert.ToString(row.Cells["Phone"].Value) ?? "",
             SiteName = Convert.ToString(row.Cells["SiteName"].Value) ?? "",
@@ -362,7 +393,10 @@ internal sealed class AdminForm : Form
             ExtraNote = Convert.ToString(row.Cells["ExtraNote"].Value) ?? "",
         };
 
-        var userErr = ValidationHelper.ValidateUsername(user.Username) ?? ValidationHelper.ValidatePassword(user.Password);
+        var userErr = ValidationHelper.ValidateUsername(user.Username)
+            ?? ValidationHelper.ValidatePassword(user.Password)
+            ?? ValidationHelper.ValidateRole(user.Role)
+            ?? ValidationHelper.ValidateFullNameOptional(user.FullName);
         var phoneErr = ValidationHelper.ValidatePhoneOptional(user.Phone);
         if (userErr != null || phoneErr != null)
         {

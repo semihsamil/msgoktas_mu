@@ -22,14 +22,19 @@ internal sealed class HomeForm : Form
         BackColor = AppTheme.SurfaceMuted,
         Padding = new Padding(0, 0, 16, 0),
     };
+    private readonly ToolStripStatusLabel _statusLabel = new() { Text = "Hazır" };
 
     public HomeForm()
     {
         AppTheme.ApplyToForm(this);
-        Text = "Mimar Sinan Göktaş";
+        Text = "Mimar Sinan Göktaş — Şantiye Takip";
         StartPosition = FormStartPosition.CenterScreen;
         MinimumSize = new Size(1020, 680);
         ClientSize = new Size(1140, 760);
+
+        MainMenuStrip = BuildMainMenu();
+        var statusBar = new StatusStrip { BackColor = AppTheme.SurfaceMuted };
+        statusBar.Items.Add(_statusLabel);
 
         var header = new Panel
         {
@@ -85,9 +90,58 @@ internal sealed class HomeForm : Form
         Controls.Add(_content);
         Controls.Add(_sessionLabel);
         Controls.Add(header);
+        Controls.Add(statusBar);
+        Controls.Add(MainMenuStrip);
 
         UpdateSessionUi();
         ShowHome();
+    }
+
+    private MenuStrip BuildMainMenu()
+    {
+        var menu = new MenuStrip { BackColor = AppTheme.Surface, Font = AppTheme.BodyFont };
+
+        var file = new ToolStripMenuItem("Dosya");
+        file.DropDownItems.Add("Çıkış", null, (_, _) => Close());
+
+        var view = new ToolStripMenuItem("Görüntüle");
+        view.DropDownItems.Add("Ana Sayfa", null, (_, _) => ShowHome());
+        view.DropDownItems.Add("Genel Şantiye Bilgileri", null, (_, _) => ShowFiles("general"));
+        view.DropDownItems.Add("Günlük Raporlar", null, (_, _) => ShowFiles("reports"));
+        view.DropDownItems.Add("Bilgi Notları", null, (_, _) => ShowFiles("notes"));
+        view.DropDownItems.Add("Şantiye Çizelgesi", null, (_, _) => ShowFiles("schedule"));
+        view.DropDownItems.Add(new ToolStripSeparator());
+        view.DropDownItems.Add("Şantiyeler", null, (_, _) => ShowSites());
+        view.DropDownItems.Add("Konum Haritası", null, (_, _) => ShowMap());
+        view.DropDownItems.Add("İletişim", null, (_, _) => ShowContact());
+
+        var account = new ToolStripMenuItem("Hesap");
+        account.DropDownItems.Add("Giriş Yap", null, (_, _) => OpenLogin());
+        account.DropDownItems.Add("Çıkış Yap", null, (_, _) => Logout());
+
+        var help = new ToolStripMenuItem("Yardım");
+        help.DropDownItems.Add("Kullanım Kılavuzu", null, (_, _) => ShowHelp());
+        help.DropDownItems.Add("Hakkında", null, (_, _) => ShowAbout());
+
+        menu.Items.Add(file);
+        menu.Items.Add(view);
+        menu.Items.Add(account);
+        menu.Items.Add(help);
+        return menu;
+    }
+
+    private void SetStatus(string text) => _statusLabel.Text = text;
+
+    private static void ShowHelp()
+    {
+        using var help = new HelpForm();
+        help.ShowDialog();
+    }
+
+    private static void ShowAbout()
+    {
+        using var about = new AboutForm();
+        about.ShowDialog();
     }
 
     private Button MakeNavButton(string text, Action action)
@@ -144,6 +198,7 @@ internal sealed class HomeForm : Form
     private void ShowHome()
     {
         ClearContent();
+        SetStatus("Ana sayfa");
 
         var hero = new Panel
         {
@@ -262,6 +317,7 @@ internal sealed class HomeForm : Form
     private void ShowFiles(string category)
     {
         ClearContent();
+        SetStatus(AppConstants.CategoryTitle(category));
 
         var header = CreatePageHeader(
             AppConstants.CategoryTitle(category),
@@ -326,6 +382,7 @@ internal sealed class HomeForm : Form
     private void ShowSites()
     {
         ClearContent();
+        SetStatus("Şantiyeler");
         var header = CreatePageHeader("Şantiyeler", "Detay görmek için satıra çift tıklayın.");
         var box = AppTheme.CreateGroupBox("Kayıtlı Şantiyeler");
         box.Dock = DockStyle.Fill;
@@ -337,6 +394,7 @@ internal sealed class HomeForm : Form
     private void ShowMap()
     {
         ClearContent();
+        SetStatus("Konum haritası");
         var settings = LocalDatabase.GetSettings();
         var header = CreatePageHeader("Konum Haritası", "Ofis konumu ve koordinat bilgileri");
         var box = AppTheme.CreateGroupBox("Konum Bilgisi");
@@ -367,6 +425,7 @@ internal sealed class HomeForm : Form
     private void ShowContact()
     {
         ClearContent();
+        SetStatus("İletişim");
         var settings = LocalDatabase.GetSettings();
         var header = CreatePageHeader("İletişim", "Ofis iletişim bilgileri");
         var box = AppTheme.CreateGroupBox("Bize Ulaşın");

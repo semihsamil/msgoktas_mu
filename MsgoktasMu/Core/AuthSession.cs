@@ -69,10 +69,59 @@ internal static class ValidationHelper
             return "Telefon en fazla 30 karakter olabilir";
         if (input.Description.Length > 500)
             return "Açıklama en fazla 500 karakter olabilir";
-        if (!string.IsNullOrWhiteSpace(input.Lat) && !double.TryParse(input.Lat.Replace(',', '.'), out _))
-            return "Geçerli enlem girin";
-        if (!string.IsNullOrWhiteSpace(input.Lng) && !double.TryParse(input.Lng.Replace(',', '.'), out _))
-            return "Geçerli boylam girin";
+        if (!string.IsNullOrWhiteSpace(input.Lat) && !double.TryParse(input.Lat.Replace(',', '.'), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out _))
+            return "Enlem sayı olmalı (ör. 39.7477)";
+        if (!string.IsNullOrWhiteSpace(input.Lng) && !double.TryParse(input.Lng.Replace(',', '.'), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out _))
+            return "Boylam sayı olmalı (ör. 37.0179)";
+        return null;
+    }
+
+    public static string? ValidateFullNameOptional(string fullName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName))
+            return null;
+        if (fullName.Trim().Length < 2 || fullName.Trim().Length > 80)
+            return "Ad soyad 2-80 karakter olmalı";
+        return null;
+    }
+
+    public static string? ValidateSettings(Models.AppSettings settings)
+    {
+        if (string.IsNullOrWhiteSpace(settings.ContactEmail))
+            return "E-posta zorunlu";
+        if (!settings.ContactEmail.Contains('@') || settings.ContactEmail.Length > 120)
+            return "Geçerli bir e-posta adresi girin";
+        if (string.IsNullOrWhiteSpace(settings.ContactPhone))
+            return "Telefon zorunlu";
+        if (settings.ContactPhone.Length > 30)
+            return "Telefon en fazla 30 karakter olabilir";
+        if (settings.ContactAddress.Length > 200)
+            return "Adres en fazla 200 karakter olabilir";
+        if (string.IsNullOrWhiteSpace(settings.MapLat) || !double.TryParse(settings.MapLat.Replace(',', '.'), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out _))
+            return "Harita enlemi sayı olmalı";
+        if (string.IsNullOrWhiteSpace(settings.MapLng) || !double.TryParse(settings.MapLng.Replace(',', '.'), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out _))
+            return "Harita boylamı sayı olmalı";
+        if (settings.MapLabel.Length > 100)
+            return "Harita etiketi en fazla 100 karakter olabilir";
+        return null;
+    }
+
+    public static string NormalizeRole(string role)
+    {
+        return role.Trim() switch
+        {
+            "Admin" => "admin",
+            "Personel" => "personel",
+            "Kullanıcı" => "is_yapilan",
+            _ => role.Trim(),
+        };
+    }
+
+    public static string? ValidateRole(string role)
+    {
+        var normalized = NormalizeRole(role);
+        if (!AppConstants.ValidRoles.Contains(normalized))
+            return "Geçersiz rol seçimi";
         return null;
     }
 }

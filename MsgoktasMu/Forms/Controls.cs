@@ -78,7 +78,16 @@ internal sealed class FileManagerControl : UserControl
     private void LoadFiles()
     {
         _list.Items.Clear();
-        foreach (var file in Data.LocalDatabase.GetFiles(_category))
+        var files = Data.LocalDatabase.GetFiles(_category);
+        if (files.Count == 0)
+        {
+            var item = new ListViewItem("(Henüz dosya yüklenmemiş)") { ForeColor = AppTheme.TextMuted };
+            item.SubItems.Add("-");
+            _list.Items.Add(item);
+            return;
+        }
+
+        foreach (var file in files)
         {
             var item = new ListViewItem(file.OriginalName) { Tag = file };
             item.SubItems.Add(ParseDate(file.UploadDate).ToLocalTime().ToString("g"));
@@ -112,8 +121,12 @@ internal sealed class FileManagerControl : UserControl
     private void OpenSelected()
     {
         if (_list.SelectedItems.Count == 0)
+        {
+            UiFactory.ShowInfo("Açmak için listeden bir dosya seçin.");
             return;
-        var file = (Models.FileRecord)_list.SelectedItems[0].Tag!;
+        }
+        if (_list.SelectedItems[0].Tag is not Models.FileRecord file)
+            return;
         var path = Data.LocalDatabase.GetFilePath(file);
         if (!File.Exists(path))
         {
@@ -127,11 +140,15 @@ internal sealed class FileManagerControl : UserControl
     private void DeleteSelected()
     {
         if (_list.SelectedItems.Count == 0)
+        {
+            UiFactory.ShowInfo("Silmek için listeden bir dosya seçin.");
+            return;
+        }
+        if (_list.SelectedItems[0].Tag is not Models.FileRecord file)
             return;
         if (!UiFactory.Confirm("Seçili dosyayı silmek istiyor musunuz?"))
             return;
 
-        var file = (Models.FileRecord)_list.SelectedItems[0].Tag!;
         try
         {
             Data.LocalDatabase.DeleteFile(file.Id);
