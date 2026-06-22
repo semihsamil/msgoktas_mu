@@ -1,0 +1,9 @@
+# Build
+bin/
+obj/
+*.user
+*.suo
+
+# Local data (masaüstü uygulamasına özel, web sitesiyle paylaşılmaz)
+MsgoktasMu/msgoktas_mu.db
+MsgoktasMu/uploads/
