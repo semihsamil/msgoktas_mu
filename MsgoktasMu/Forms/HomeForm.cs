@@ -5,46 +5,75 @@ namespace MsgoktasMu.Forms;
 
 internal sealed class HomeForm : Form
 {
-    private readonly Panel _content = new() { Dock = DockStyle.Fill, Padding = new Padding(24), AutoScroll = true };
+    private readonly Panel _content = new()
+    {
+        Dock = DockStyle.Fill,
+        Padding = new Padding(28, 20, 28, 24),
+        AutoScroll = true,
+        BackColor = AppTheme.Background,
+    };
     private readonly Label _sessionLabel = new()
     {
         Dock = DockStyle.Top,
-        Height = 28,
+        Height = 30,
         TextAlign = ContentAlignment.MiddleRight,
-        ForeColor = Color.DimGray,
+        ForeColor = AppTheme.TextMuted,
+        Font = AppTheme.BodyFont,
+        BackColor = AppTheme.SurfaceMuted,
+        Padding = new Padding(0, 0, 16, 0),
     };
 
     public HomeForm()
     {
+        AppTheme.ApplyToForm(this);
         Text = "Mimar Sinan Göktaş";
         StartPosition = FormStartPosition.CenterScreen;
-        MinimumSize = new Size(980, 640);
-        ClientSize = new Size(1100, 720);
+        MinimumSize = new Size(1020, 680);
+        ClientSize = new Size(1140, 760);
 
-        var header = new Panel { Dock = DockStyle.Top, Height = 56, Padding = new Padding(16, 12, 16, 0) };
+        var header = new Panel
+        {
+            Dock = DockStyle.Top,
+            Height = 68,
+            BackColor = AppTheme.Surface,
+            Padding = new Padding(18, 14, 18, 10),
+        };
+        header.Paint += (_, e) =>
+        {
+            using var pen = new Pen(AppTheme.Border);
+            e.Graphics.DrawLine(pen, 0, header.Height - 1, header.Width, header.Height - 1);
+        };
+
         var brand = new Label
         {
             Text = "Mimar Sinan Göktaş",
             Dock = DockStyle.Left,
-            Width = 260,
-            Font = new Font("Georgia", 16F, FontStyle.Bold),
-            ForeColor = Color.FromArgb(140, 98, 36),
+            Width = 240,
+            Font = AppTheme.TitleFont,
+            ForeColor = AppTheme.Accent,
+            TextAlign = ContentAlignment.MiddleLeft,
         };
 
-        var nav = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.LeftToRight, WrapContents = false };
+        var nav = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = true,
+            Padding = new Padding(8, 0, 0, 0),
+        };
         nav.Controls.Add(MakeNavButton("Ana Sayfa", ShowHome));
-        nav.Controls.Add(MakeNavButton("Genel Şantiye Bilgileri", () => ShowFiles("general")));
-        nav.Controls.Add(MakeNavButton("Günlük Raporlar", () => ShowFiles("reports")));
-        nav.Controls.Add(MakeNavButton("Bilgi Notları", () => ShowFiles("notes")));
-        nav.Controls.Add(MakeNavButton("Şantiye Çizelgesi", () => ShowFiles("schedule")));
+        nav.Controls.Add(MakeNavButton("Genel Bilgiler", () => ShowFiles("general")));
+        nav.Controls.Add(MakeNavButton("Raporlar", () => ShowFiles("reports")));
+        nav.Controls.Add(MakeNavButton("Notlar", () => ShowFiles("notes")));
+        nav.Controls.Add(MakeNavButton("Çizelge", () => ShowFiles("schedule")));
         nav.Controls.Add(MakeNavButton("Şantiyeler", ShowSites));
         nav.Controls.Add(MakeNavButton("Harita", ShowMap));
         nav.Controls.Add(MakeNavButton("İletişim", ShowContact));
 
-        var right = new FlowLayoutPanel { Dock = DockStyle.Right, Width = 260, FlowDirection = FlowDirection.RightToLeft };
-        var btnLogin = UiFactory.CreateButton("Giriş / Admin", 120);
+        var right = new FlowLayoutPanel { Dock = DockStyle.Right, Width = 250, FlowDirection = FlowDirection.RightToLeft };
+        var btnLogin = UiFactory.CreateButton("Giriş / Admin", primary: true, width: 118);
         btnLogin.Click += (_, _) => OpenLogin();
-        var btnLogout = UiFactory.CreateButton("Çıkış", 80);
+        var btnLogout = UiFactory.CreateButton("Çıkış", primary: false, width: 80);
         btnLogout.Click += (_, _) => Logout();
         right.Controls.Add(btnLogout);
         right.Controls.Add(btnLogin);
@@ -63,7 +92,10 @@ internal sealed class HomeForm : Form
 
     private Button MakeNavButton(string text, Action action)
     {
-        var btn = UiFactory.CreateButton(text, 150, 32);
+        var btn = UiFactory.CreateButton(text, primary: false, width: 0, height: 34);
+        btn.AutoSize = true;
+        btn.MinimumSize = new Size(88, 34);
+        AppTheme.StyleNavButton(btn);
         btn.Click += (_, _) => action();
         return btn;
     }
@@ -72,12 +104,12 @@ internal sealed class HomeForm : Form
     {
         if (!AuthSession.IsLoggedIn)
         {
-            _sessionLabel.Text = "Ziyaretçi modu";
+            _sessionLabel.Text = "  Ziyaretçi modu — dosyaları görüntüleyebilirsiniz";
             return;
         }
 
         var u = AuthSession.Current!;
-        _sessionLabel.Text = $"Oturum: {u.Username} ({AppConstants.RoleLabel(u.Role)})";
+        _sessionLabel.Text = $"  Oturum: {u.Username} ({AppConstants.RoleLabel(u.Role)})";
 
         if (u.Role == "admin")
         {
@@ -91,7 +123,7 @@ internal sealed class HomeForm : Form
         }
 
         AuthSession.Clear();
-        _sessionLabel.Text = "Ziyaretçi modu";
+        _sessionLabel.Text = "  Ziyaretçi modu — dosyaları görüntüleyebilirsiniz";
     }
 
     private void OpenLogin()
@@ -104,127 +136,172 @@ internal sealed class HomeForm : Form
     private void Logout()
     {
         AuthSession.Clear();
-        UpdateSessionUi();
         ShowHome();
     }
 
-    private void ClearContent()
-    {
-        _content.Controls.Clear();
-    }
+    private void ClearContent() => _content.Controls.Clear();
 
     private void ShowHome()
     {
         ClearContent();
-        var title = new Label
+
+        var hero = new Panel
+        {
+            Dock = DockStyle.Top,
+            Height = 150,
+            BackColor = AppTheme.Accent,
+            Padding = new Padding(24, 22, 24, 18),
+            Margin = new Padding(0, 0, 0, 18),
+        };
+        hero.Controls.Add(new Label
+        {
+            Text = "Mimarlık ofisi — şantiye raporları, çizelgeler ve dosyalar bu programdan takip edilir.",
+            Dock = DockStyle.Bottom,
+            Height = 42,
+            ForeColor = Color.FromArgb(255, 245, 225),
+            Font = AppTheme.BodyFont,
+        });
+        hero.Controls.Add(new Label
         {
             Text = "Mimar Sinan Göktaş",
             Dock = DockStyle.Top,
-            Height = 40,
-            Font = new Font("Segoe UI", 18F, FontStyle.Bold),
-        };
-        var lead = new Label
-        {
-            Text = "Mimarlık ofisi. Şantiye raporları, çizelgeler ve dosyalar bu programdan takip edilir.",
-            Dock = DockStyle.Top,
-            Height = 48,
-            MaximumSize = new Size(900, 0),
-            AutoSize = true,
-        };
+            Height = 42,
+            ForeColor = Color.White,
+            Font = new Font("Georgia", 20F, FontStyle.Bold),
+        });
 
-        var cards = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 150, AutoSize = true, WrapContents = true };
+        var cards = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            WrapContents = true,
+            Margin = new Padding(0, 0, 0, 18),
+        };
         cards.Controls.Add(MakeCard("Genel Bilgiler", "Şantiye listesi ve dosyalar", () => ShowFiles("general")));
         cards.Controls.Add(MakeCard("Günlük Raporlar", "Yüklenen rapor dosyaları", () => ShowFiles("reports")));
         cards.Controls.Add(MakeCard("Çizelge", "İş programı dosyaları", () => ShowFiles("schedule")));
         cards.Controls.Add(MakeCard("Harita", "Ofis konumu", ShowMap));
 
-        var about = new GroupBox { Text = "Hakkımızda", Dock = DockStyle.Top, Height = 120, Padding = new Padding(12) };
+        var about = AppTheme.CreateGroupBox("Hakkımızda");
+        about.Dock = DockStyle.Top;
+        about.Height = 110;
         about.Controls.Add(new Label
         {
             Dock = DockStyle.Fill,
-            Text = "Sivas merkezli mimarlık ofisiyiz. Konut ve ticari yapı projeleri ile şantiye takip işlerinde çalışıyoruz. Bu program; rapor, çizelge ve şantiye bilgilerinin takip edildiği masaüstü uygulamadır.",
+            Text = "Sivas merkezli mimarlık ofisiyiz. Konut ve ticari yapı projeleri ile şantiye takip işlerinde çalışıyoruz.",
+            ForeColor = AppTheme.Text,
+            Font = AppTheme.BodyFont,
         });
 
-        var services = new GroupBox { Text = "Hizmetler", Dock = DockStyle.Top, Height = 150, Padding = new Padding(12) };
+        var services = AppTheme.CreateGroupBox("Hizmetler");
+        services.Dock = DockStyle.Top;
+        services.Height = 130;
         services.Controls.Add(new Label
         {
             Dock = DockStyle.Fill,
-            Text = "• Mimari Proje — Konut ve işyeri projelerinin hazırlanması\r\n• İç Mekan — Oda düzeni ve malzeme planlaması\r\n• Şantiye Takibi — Günlük rapor, çizelge ve dosya takibi\r\n• Danışmanlık — Ruhsat ve uygulama süreçlerinde destek",
+            Text = "Mimari Proje  •  İç Mekan  •  Şantiye Takibi  •  Danışmanlık",
+            ForeColor = AppTheme.TextMuted,
+            Font = AppTheme.BodyFont,
         });
 
         _content.Controls.Add(services);
         _content.Controls.Add(about);
         _content.Controls.Add(cards);
-        _content.Controls.Add(lead);
-        _content.Controls.Add(title);
+        _content.Controls.Add(hero);
     }
 
     private Panel MakeCard(string title, string desc, Action action)
     {
-        var card = new Panel
+        var card = AppTheme.CreateCard(240, 118);
+        var titleLbl = new Label
         {
-            Width = 220,
-            Height = 110,
-            Margin = new Padding(0, 0, 12, 12),
-            BorderStyle = BorderStyle.FixedSingle,
-            Cursor = Cursors.Hand,
+            Text = title,
+            Dock = DockStyle.Top,
+            Height = 28,
+            Font = AppTheme.SectionFont,
+            ForeColor = AppTheme.Accent,
         };
-        card.Controls.Add(new Label { Text = desc, Dock = DockStyle.Bottom, Height = 36, Padding = new Padding(8, 0, 8, 8) });
-        card.Controls.Add(new Label { Text = title, Dock = DockStyle.Top, Height = 28, Font = new Font("Segoe UI", 10F, FontStyle.Bold), Padding = new Padding(8, 8, 8, 0) });
+        var descLbl = new Label
+        {
+            Text = desc,
+            Dock = DockStyle.Fill,
+            ForeColor = AppTheme.TextMuted,
+            Font = AppTheme.BodyFont,
+            Padding = new Padding(0, 6, 0, 0),
+        };
+        card.Controls.Add(descLbl);
+        card.Controls.Add(titleLbl);
         card.Click += (_, _) => action();
         foreach (Control c in card.Controls)
             c.Click += (_, _) => action();
         return card;
     }
 
+    private Panel CreatePageHeader(string title, string description)
+    {
+        var panel = new Panel { Dock = DockStyle.Top, Height = 72, Margin = new Padding(0, 0, 0, 12) };
+        panel.Controls.Add(new Label
+        {
+            Text = description,
+            Dock = DockStyle.Bottom,
+            Height = 24,
+            ForeColor = AppTheme.TextMuted,
+            Font = AppTheme.BodyFont,
+        });
+        panel.Controls.Add(new Label
+        {
+            Text = title,
+            Dock = DockStyle.Top,
+            Height = 34,
+            Font = AppTheme.SectionFont,
+            ForeColor = AppTheme.Accent,
+        });
+        return panel;
+    }
+
     private void ShowFiles(string category)
     {
         ClearContent();
-        var title = new Label
-        {
-            Text = AppConstants.CategoryTitle(category),
-            Dock = DockStyle.Top,
-            Height = 36,
-            Font = new Font("Segoe UI", 14F, FontStyle.Bold),
-        };
-        var lead = new Label
-        {
-            Text = category == "general"
-                ? "Şantiye listesi aşağıda. Detay için Görüntüle düğmesine basın."
-                : "Dosya listesi. Çift tıklayarak açabilirsiniz.",
-            Dock = DockStyle.Top,
-            Height = 28,
-        };
 
-        var files = new FileManagerControl(category, allowManage: false) { Dock = DockStyle.Fill, Height = 360 };
+        var header = CreatePageHeader(
+            AppConstants.CategoryTitle(category),
+            category == "general"
+                ? "Önce şantiye listesine bakın, ardından genel dosyaları inceleyin."
+                : "Listeden dosyayı çift tıklayarak açabilirsiniz.");
 
-        _content.Controls.Add(files);
+        var filesHost = new Panel { Dock = DockStyle.Fill, BackColor = AppTheme.Surface, Padding = new Padding(8), BorderStyle = BorderStyle.FixedSingle };
+        filesHost.Controls.Add(new FileManagerControl(category, allowManage: false) { Dock = DockStyle.Fill });
+
         if (category == "general")
         {
-            var sitesPanel = BuildSitesPanel();
-            sitesPanel.Dock = DockStyle.Top;
-            sitesPanel.Height = 220;
-            _content.Controls.Add(sitesPanel);
+            var sitesBox = AppTheme.CreateGroupBox("Şantiyeler");
+            sitesBox.Dock = DockStyle.Top;
+            sitesBox.Height = 240;
+            sitesBox.Controls.Add(BuildSitesPanel());
+            _content.Controls.Add(filesHost);
+            _content.Controls.Add(sitesBox);
         }
-        _content.Controls.Add(lead);
-        _content.Controls.Add(title);
+        else
+        {
+            _content.Controls.Add(filesHost);
+        }
+
+        _content.Controls.Add(header);
     }
 
-    private Panel BuildSitesPanel()
+    private Control BuildSitesPanel()
     {
-        var panel = new Panel { Padding = new Padding(0, 8, 0, 8) };
-        panel.Controls.Add(new Label
+        var list = new ListView
         {
-            Text = "Şantiyeler",
-            Dock = DockStyle.Top,
-            Height = 24,
-            Font = new Font("Segoe UI", 11F, FontStyle.Bold),
-        });
-
-        var list = new ListView { Dock = DockStyle.Fill, View = View.Details, FullRowSelect = true };
-        list.Columns.Add("Şantiye", 220);
-        list.Columns.Add("Adres", 360);
-        list.Columns.Add("", 100);
+            Dock = DockStyle.Fill,
+            View = View.Details,
+            FullRowSelect = true,
+            BorderStyle = BorderStyle.None,
+            Font = AppTheme.BodyFont,
+        };
+        list.Columns.Add("Şantiye Adı", 220);
+        list.Columns.Add("Adres", 380);
+        list.Columns.Add("İşlem", 90);
 
         foreach (var site in LocalDatabase.GetSites())
         {
@@ -235,17 +312,7 @@ internal sealed class HomeForm : Form
         }
 
         list.DoubleClick += (_, _) => OpenSite(list);
-        list.Click += (_, e) =>
-        {
-            if (list.SelectedItems.Count == 0) return;
-            var pt = list.PointToClient(Cursor.Position);
-            var hit = list.HitTest(pt);
-            if (hit.SubItem != null && hit.Item != null && hit.Item.SubItems.IndexOf(hit.SubItem) == 2)
-                OpenSite(list);
-        };
-
-        panel.Controls.Add(list);
-        return panel;
+        return list;
     }
 
     private static void OpenSite(ListView list)
@@ -259,55 +326,60 @@ internal sealed class HomeForm : Form
     private void ShowSites()
     {
         ClearContent();
-        var panel = BuildSitesPanel();
-        panel.Dock = DockStyle.Fill;
-        _content.Controls.Add(panel);
-        _content.Controls.Add(new Label
-        {
-            Text = "Şantiyeler",
-            Dock = DockStyle.Top,
-            Height = 36,
-            Font = new Font("Segoe UI", 14F, FontStyle.Bold),
-        });
+        var header = CreatePageHeader("Şantiyeler", "Detay görmek için satıra çift tıklayın.");
+        var box = AppTheme.CreateGroupBox("Kayıtlı Şantiyeler");
+        box.Dock = DockStyle.Fill;
+        box.Controls.Add(BuildSitesPanel());
+        _content.Controls.Add(box);
+        _content.Controls.Add(header);
     }
 
     private void ShowMap()
     {
         ClearContent();
         var settings = LocalDatabase.GetSettings();
-        var title = new Label { Text = "Konum Haritası", Dock = DockStyle.Top, Height = 36, Font = new Font("Segoe UI", 14F, FontStyle.Bold) };
-        var info = new Label
+        var header = CreatePageHeader("Konum Haritası", "Ofis konumu ve koordinat bilgileri");
+        var box = AppTheme.CreateGroupBox("Konum Bilgisi");
+        box.Dock = DockStyle.Top;
+        box.Height = 180;
+        box.Controls.Add(new Label
         {
-            Dock = DockStyle.Top,
-            Height = 120,
-            Text = $"Etiket: {settings.MapLabel}\r\nAdres: {settings.ContactAddress}\r\nEnlem: {settings.MapLat}\r\nBoylam: {settings.MapLng}\r\n\r\nHaritayı tarayıcıda açmak için aşağıdaki düğmeyi kullanın.",
-        };
-        var btn = UiFactory.CreateButton("Google Haritada Aç", 160);
+            Dock = DockStyle.Fill,
+            Text = $"Etiket: {settings.MapLabel}\r\nAdres: {settings.ContactAddress}\r\nEnlem: {settings.MapLat}   Boylam: {settings.MapLng}",
+            Font = AppTheme.BodyFont,
+            ForeColor = AppTheme.Text,
+        });
+
+        var btn = UiFactory.CreateButton("Google Haritada Aç", primary: true, width: 170);
         btn.Click += (_, _) =>
         {
             var url = $"https://www.google.com/maps?q={settings.MapLat},{settings.MapLng}";
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
         };
-        var flow = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 44 };
+        var flow = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 48, Padding = new Padding(0, 8, 0, 0) };
         flow.Controls.Add(btn);
 
         _content.Controls.Add(flow);
-        _content.Controls.Add(info);
-        _content.Controls.Add(title);
+        _content.Controls.Add(box);
+        _content.Controls.Add(header);
     }
 
     private void ShowContact()
     {
         ClearContent();
         var settings = LocalDatabase.GetSettings();
-        var title = new Label { Text = "İletişim", Dock = DockStyle.Top, Height = 36, Font = new Font("Segoe UI", 14F, FontStyle.Bold) };
-        var info = new Label
+        var header = CreatePageHeader("İletişim", "Ofis iletişim bilgileri");
+        var box = AppTheme.CreateGroupBox("Bize Ulaşın");
+        box.Dock = DockStyle.Top;
+        box.Height = 130;
+        box.Controls.Add(new Label
         {
-            Dock = DockStyle.Top,
-            Height = 100,
+            Dock = DockStyle.Fill,
             Text = $"E-posta: {settings.ContactEmail}\r\nTelefon: {settings.ContactPhone}\r\nAdres: {settings.ContactAddress}",
-        };
-        _content.Controls.Add(info);
-        _content.Controls.Add(title);
+            Font = AppTheme.BodyFont,
+            ForeColor = AppTheme.Text,
+        });
+        _content.Controls.Add(box);
+        _content.Controls.Add(header);
     }
 }

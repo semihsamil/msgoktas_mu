@@ -28,6 +28,7 @@ internal sealed class AdminForm : Form
 
     public AdminForm()
     {
+        AppTheme.ApplyToForm(this);
         Text = "Admin Paneli | Mimar Sinan Göktaş";
         StartPosition = FormStartPosition.CenterParent;
         MinimumSize = new Size(980, 640);
@@ -41,7 +42,7 @@ internal sealed class AdminForm : Form
             Width = 200,
             Font = new Font("Segoe UI", 14F, FontStyle.Bold),
         };
-        var btnClose = UiFactory.CreateButton("Kapat", 100);
+        var btnClose = UiFactory.CreateButton("Kapat", primary: false, width: 100);
         btnClose.Click += (_, _) => Close();
         var actions = new FlowLayoutPanel { Dock = DockStyle.Right, Width = 120, FlowDirection = FlowDirection.RightToLeft };
         actions.Controls.Add(btnClose);
@@ -76,23 +77,23 @@ internal sealed class AdminForm : Form
         _sitesList.SelectedIndexChanged += (_, _) => LoadSelectedSite();
 
         var siteButtons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 40 };
-        var btnNew = UiFactory.CreateButton("Yeni", 80);
+        var btnNew = UiFactory.CreateButton("Yeni", primary: false, width: 80);
         btnNew.Click += (_, _) => ClearSiteForm();
-        var btnDelete = UiFactory.CreateButton("Sil", 80);
+        var btnDelete = UiFactory.CreateButton("Sil", primary: false, width: 80);
         btnDelete.Click += (_, _) => DeleteSite();
         siteButtons.Controls.Add(btnNew);
         siteButtons.Controls.Add(btnDelete);
 
         var siteTop = new Panel { Dock = DockStyle.Top, Height = 280, Padding = new Padding(8) };
-        _siteName = UiFactory.CreateTextBox();
-        _siteAddress = UiFactory.CreateTextBox();
-        _sitePhone = UiFactory.CreateTextBox();
-        _siteLat = UiFactory.CreateTextBox();
-        _siteLng = UiFactory.CreateTextBox();
-        _siteDescription = UiFactory.CreateTextBox(multiline: true, height: 60);
+        _siteName = AppTheme.CreateInput();
+        _siteAddress = AppTheme.CreateInput();
+        _sitePhone = AppTheme.CreateInput();
+        _siteLat = AppTheme.CreateInput();
+        _siteLng = AppTheme.CreateInput();
+        _siteDescription = AppTheme.CreateMultilineInput(60);
         _siteStatus = new Label { Dock = DockStyle.Top, Height = 20, ForeColor = Color.DarkGreen };
 
-        var btnSaveSite = UiFactory.CreateButton("Şantiyeyi Kaydet", 130);
+        var btnSaveSite = UiFactory.CreateButton("Şantiyeyi Kaydet", primary: true, width: 130);
         btnSaveSite.Click += (_, _) => SaveSite();
         var siteFormButtons = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 40 };
         siteFormButtons.Controls.Add(btnSaveSite);
@@ -100,17 +101,17 @@ internal sealed class AdminForm : Form
         siteTop.Controls.Add(_siteStatus);
         siteTop.Controls.Add(siteFormButtons);
         siteTop.Controls.Add(_siteDescription);
-        siteTop.Controls.Add(UiFactory.CreateLabel("Açıklama"));
+        siteTop.Controls.Add(AppTheme.CreateFieldLabel("Açıklama"));
         siteTop.Controls.Add(_siteLng);
-        siteTop.Controls.Add(UiFactory.CreateLabel("Boylam"));
+        siteTop.Controls.Add(AppTheme.CreateFieldLabel("Boylam"));
         siteTop.Controls.Add(_siteLat);
-        siteTop.Controls.Add(UiFactory.CreateLabel("Enlem"));
+        siteTop.Controls.Add(AppTheme.CreateFieldLabel("Enlem"));
         siteTop.Controls.Add(_sitePhone);
-        siteTop.Controls.Add(UiFactory.CreateLabel("Telefon"));
+        siteTop.Controls.Add(AppTheme.CreateFieldLabel("Telefon"));
         siteTop.Controls.Add(_siteAddress);
-        siteTop.Controls.Add(UiFactory.CreateLabel("Adres"));
+        siteTop.Controls.Add(AppTheme.CreateFieldLabel("Adres"));
         siteTop.Controls.Add(_siteName);
-        siteTop.Controls.Add(UiFactory.CreateLabel("Şantiye adı *"));
+        siteTop.Controls.Add(AppTheme.CreateFieldLabel("Şantiye adı *"));
 
         var sitePanel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(8) };
         sitePanel.Controls.Add(_sitesList);
@@ -163,11 +164,11 @@ internal sealed class AdminForm : Form
         _usersGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Id", Visible = false });
 
         var buttons = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 42, Padding = new Padding(8, 8, 8, 0) };
-        var btnReload = UiFactory.CreateButton("Yenile", 90);
+        var btnReload = UiFactory.CreateButton("Yenile", primary: false, width: 90);
         btnReload.Click += (_, _) => ReloadUsers();
-        var btnSave = UiFactory.CreateButton("Seçiliyi Kaydet", 120);
+        var btnSave = UiFactory.CreateButton("Seçiliyi Kaydet", primary: true, width: 120);
         btnSave.Click += (_, _) => SaveSelectedUser();
-        var btnDelete = UiFactory.CreateButton("Seçiliyi Sil", 100);
+        var btnDelete = UiFactory.CreateButton("Seçiliyi Sil", primary: false, width: 100);
         btnDelete.Click += (_, _) => DeleteSelectedUser();
         buttons.Controls.Add(btnReload);
         buttons.Controls.Add(btnSave);
@@ -202,21 +203,21 @@ internal sealed class AdminForm : Form
         var panel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(16), AutoScroll = true, Width = 520 };
         var settings = LocalDatabase.GetSettings();
 
-        _contactEmail = UiFactory.CreateTextBox();
+        _contactEmail = AppTheme.CreateInput();
         _contactEmail.Text = settings.ContactEmail;
-        _contactPhone = UiFactory.CreateTextBox();
+        _contactPhone = AppTheme.CreateInput();
         _contactPhone.Text = settings.ContactPhone;
-        _contactAddress = UiFactory.CreateTextBox();
+        _contactAddress = AppTheme.CreateInput();
         _contactAddress.Text = settings.ContactAddress;
-        _mapLat = UiFactory.CreateTextBox();
+        _mapLat = AppTheme.CreateInput();
         _mapLat.Text = settings.MapLat;
-        _mapLng = UiFactory.CreateTextBox();
+        _mapLng = AppTheme.CreateInput();
         _mapLng.Text = settings.MapLng;
-        _mapLabel = UiFactory.CreateTextBox();
+        _mapLabel = AppTheme.CreateInput();
         _mapLabel.Text = settings.MapLabel;
         _settingsStatus = new Label { Dock = DockStyle.Top, Height = 20, ForeColor = Color.DarkGreen };
 
-        var btnSave = UiFactory.CreateButton("Ayarları Kaydet", 140);
+        var btnSave = UiFactory.CreateButton("Ayarları Kaydet", primary: true, width: 140);
         btnSave.Click += (_, _) => SaveSettings();
         var buttons = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 40 };
         buttons.Controls.Add(btnSave);
@@ -224,17 +225,17 @@ internal sealed class AdminForm : Form
         panel.Controls.Add(_settingsStatus);
         panel.Controls.Add(buttons);
         panel.Controls.Add(_mapLabel);
-        panel.Controls.Add(UiFactory.CreateLabel("Harita etiketi"));
+        panel.Controls.Add(AppTheme.CreateFieldLabel("Harita etiketi"));
         panel.Controls.Add(_mapLng);
-        panel.Controls.Add(UiFactory.CreateLabel("Boylam"));
+        panel.Controls.Add(AppTheme.CreateFieldLabel("Boylam"));
         panel.Controls.Add(_mapLat);
-        panel.Controls.Add(UiFactory.CreateLabel("Enlem"));
+        panel.Controls.Add(AppTheme.CreateFieldLabel("Enlem"));
         panel.Controls.Add(_contactAddress);
-        panel.Controls.Add(UiFactory.CreateLabel("Adres"));
+        panel.Controls.Add(AppTheme.CreateFieldLabel("Adres"));
         panel.Controls.Add(_contactPhone);
-        panel.Controls.Add(UiFactory.CreateLabel("Telefon"));
+        panel.Controls.Add(AppTheme.CreateFieldLabel("Telefon"));
         panel.Controls.Add(_contactEmail);
-        panel.Controls.Add(UiFactory.CreateLabel("E-posta"));
+        panel.Controls.Add(AppTheme.CreateFieldLabel("E-posta"));
 
         page.Controls.Add(panel);
         return page;

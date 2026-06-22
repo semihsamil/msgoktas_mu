@@ -6,79 +6,120 @@ namespace MsgoktasMu.Forms;
 
 internal sealed class RegisterForm : Form
 {
-    private readonly ComboBox _role = new() { Dock = DockStyle.Top, DropDownStyle = ComboBoxStyle.DropDownList };
-    private readonly TextBox _username = UiFactory.CreateTextBox();
-    private readonly TextBox _password = new() { Dock = DockStyle.Top, Height = 28, UseSystemPasswordChar = true, Margin = new Padding(0, 0, 0, 8) };
-    private readonly TextBox _password2 = new() { Dock = DockStyle.Top, Height = 28, UseSystemPasswordChar = true, Margin = new Padding(0, 0, 0, 8) };
-    private readonly TextBox _fullName = UiFactory.CreateTextBox();
-    private readonly TextBox _phone = UiFactory.CreateTextBox();
-    private readonly TextBox _siteName = UiFactory.CreateTextBox();
-    private readonly TextBox _companyName = UiFactory.CreateTextBox();
-    private readonly Label _lblSite = UiFactory.CreateLabel("Şantiye Adı (varsa)");
-    private readonly Label _lblCompany = UiFactory.CreateLabel("Kurum / Firma Adı");
-    private readonly Label _status = new() { Dock = DockStyle.Top, ForeColor = Color.DarkRed, Height = 36 };
+    private readonly ComboBox _role = new() { DropDownStyle = ComboBoxStyle.DropDownList, Font = AppTheme.BodyFont, Height = 30 };
+    private readonly TextBox _username = AppTheme.CreateInput(placeholder: "örn: ahmet.yilmaz");
+    private readonly TextBox _password = AppTheme.CreateInput(password: true, placeholder: "en az 6 karakter");
+    private readonly TextBox _password2 = AppTheme.CreateInput(password: true, placeholder: "şifreyi tekrar yazın");
+    private readonly TextBox _fullName = AppTheme.CreateInput(placeholder: "Adınız Soyadınız");
+    private readonly TextBox _phone = AppTheme.CreateInput(placeholder: "+90 5XXXXXXXXX");
+    private readonly TextBox _siteName = AppTheme.CreateInput(placeholder: "örn: Merkez Şantiye");
+    private readonly TextBox _companyName = AppTheme.CreateInput(placeholder: "örn: ABC İnşaat Ltd.");
+    private readonly GroupBox _customerPanel;
+    private readonly Label _status = new()
+    {
+        Dock = DockStyle.Top,
+        ForeColor = AppTheme.Error,
+        Height = 36,
+        Font = AppTheme.BodyFont,
+        Padding = new Padding(0, 8, 0, 0),
+    };
 
     public RegisterForm()
     {
+        AppTheme.ApplyToForm(this);
         Text = "Kayıt Ol | Mimar Sinan Göktaş";
         StartPosition = FormStartPosition.CenterParent;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
-        ClientSize = new Size(460, 520);
+        ClientSize = new Size(560, 680);
 
         _role.Items.AddRange(["Personel", "Kullanıcı"]);
         _role.SelectedIndex = 0;
-        _role.SelectedIndexChanged += (_, _) => ToggleCustomerFields();
+        _role.SelectedIndexChanged += (_, _) => UpdateCustomerVisibility();
 
-        var panel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(24), AutoScroll = true };
+        var root = new Panel { Dock = DockStyle.Fill, Padding = new Padding(20), AutoScroll = true, BackColor = AppTheme.Background };
+
         var title = new Label
         {
-            Text = "Yeni Hesap",
+            Text = "Yeni Hesap Oluştur",
             Dock = DockStyle.Top,
-            Height = 30,
-            Font = new Font("Segoe UI", 12F, FontStyle.Bold),
+            Height = 36,
+            Font = AppTheme.TitleFont,
+            ForeColor = AppTheme.Accent,
+        };
+        var subtitle = new Label
+        {
+            Text = "Aşağıdaki alanları doldurun. Yıldızlı alanlar zorunludur.",
+            Dock = DockStyle.Top,
+            Height = 24,
+            ForeColor = AppTheme.TextMuted,
+            Font = AppTheme.BodyFont,
+            Margin = new Padding(0, 0, 0, 12),
         };
 
-        var btnSave = UiFactory.CreateButton("Kayıt Ol", 120);
+        var groupRole = AppTheme.CreateGroupBox("1. Rol");
+        groupRole.Dock = DockStyle.Top;
+        groupRole.Height = 110;
+        var roleGrid = AppTheme.CreateFormGrid(1);
+        AppTheme.AddFormRow(roleGrid, 0, "Kayıt türü *", _role, "Personel: ofis çalışanı | Kullanıcı: iş yapılan taraf");
+        groupRole.Controls.Add(roleGrid);
+
+        var groupAccount = AppTheme.CreateGroupBox("2. Giriş Bilgileri");
+        groupAccount.Dock = DockStyle.Top;
+        groupAccount.Height = 210;
+        var accountGrid = AppTheme.CreateFormGrid(3);
+        AppTheme.AddFormRow(accountGrid, 0, "Kullanıcı adı *", _username, "3-32 karakter, harf/rakam/.-_");
+        AppTheme.AddFormRow(accountGrid, 1, "Şifre *", _password);
+        AppTheme.AddFormRow(accountGrid, 2, "Şifre tekrar *", _password2);
+        groupAccount.Controls.Add(accountGrid);
+
+        var groupPersonal = AppTheme.CreateGroupBox("3. Kişisel Bilgiler");
+        groupPersonal.Dock = DockStyle.Top;
+        groupPersonal.Height = 150;
+        var personalGrid = AppTheme.CreateFormGrid(2);
+        AppTheme.AddFormRow(personalGrid, 0, "Ad Soyad", _fullName);
+        AppTheme.AddFormRow(personalGrid, 1, "Telefon *", _phone, "Format: +90 5XXXXXXXXX");
+        groupPersonal.Controls.Add(personalGrid);
+
+        _customerPanel = AppTheme.CreateGroupBox("4. Kullanıcı Bilgileri (Kullanıcı rolü için)");
+        _customerPanel.Dock = DockStyle.Top;
+        _customerPanel.Height = 150;
+        var customerGrid = AppTheme.CreateFormGrid(2);
+        AppTheme.AddFormRow(customerGrid, 0, "Şantiye adı", _siteName);
+        AppTheme.AddFormRow(customerGrid, 1, "Kurum / Firma", _companyName);
+        _customerPanel.Controls.Add(customerGrid);
+
+        var btnSave = UiFactory.CreateButton("Kayıt Ol", primary: true, width: 130);
         btnSave.Click += (_, _) => DoRegister();
-        var btnCancel = UiFactory.CreateButton("İptal", 100);
+        var btnCancel = UiFactory.CreateButton("İptal", primary: false, width: 100);
         btnCancel.Click += (_, _) => Close();
-        var buttons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 44 };
+        var buttons = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Bottom,
+            Height = 52,
+            Padding = new Padding(0, 8, 0, 0),
+            BackColor = AppTheme.Background,
+        };
         buttons.Controls.Add(btnSave);
         buttons.Controls.Add(btnCancel);
 
-        panel.Controls.Add(buttons);
-        panel.Controls.Add(_status);
-        panel.Controls.Add(_companyName);
-        panel.Controls.Add(_lblCompany);
-        panel.Controls.Add(_siteName);
-        panel.Controls.Add(_lblSite);
-        panel.Controls.Add(_phone);
-        panel.Controls.Add(UiFactory.CreateLabel("Telefon (+90 5...)"));
-        panel.Controls.Add(_fullName);
-        panel.Controls.Add(UiFactory.CreateLabel("Ad Soyad"));
-        panel.Controls.Add(_password2);
-        panel.Controls.Add(UiFactory.CreateLabel("Şifre (Tekrar)"));
-        panel.Controls.Add(_password);
-        panel.Controls.Add(UiFactory.CreateLabel("Şifre"));
-        panel.Controls.Add(_username);
-        panel.Controls.Add(UiFactory.CreateLabel("Kullanıcı adı"));
-        panel.Controls.Add(_role);
-        panel.Controls.Add(UiFactory.CreateLabel("Rol"));
-        panel.Controls.Add(title);
+        root.Controls.Add(buttons);
+        root.Controls.Add(_status);
+        root.Controls.Add(_customerPanel);
+        root.Controls.Add(groupPersonal);
+        root.Controls.Add(groupAccount);
+        root.Controls.Add(groupRole);
+        root.Controls.Add(subtitle);
+        root.Controls.Add(title);
 
-        Controls.Add(panel);
-        ToggleCustomerFields();
+        Controls.Add(root);
+        UpdateCustomerVisibility();
     }
 
-    private void ToggleCustomerFields()
+    private void UpdateCustomerVisibility()
     {
-        var customer = _role.SelectedIndex == 1;
-        _lblSite.Visible = customer;
-        _siteName.Visible = customer;
-        _lblCompany.Visible = customer;
-        _companyName.Visible = customer;
+        _customerPanel.Visible = _role.SelectedIndex == 1;
     }
 
     private void DoRegister()

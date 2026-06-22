@@ -2,39 +2,18 @@ namespace MsgoktasMu.Forms;
 
 internal static class UiFactory
 {
-    public static Button CreateButton(string text, int width = 120, int height = 34)
+    public static Button CreateButton(string text, bool primary = true, int width = 120, int height = 36)
     {
-        return new Button
+        var button = new Button
         {
             Text = text,
             Width = width,
             Height = height,
-            FlatStyle = FlatStyle.System,
-            Margin = new Padding(4),
+            Margin = new Padding(6, 4, 6, 4),
         };
-    }
-
-    public static Label CreateLabel(string text, bool bold = false)
-    {
-        return new Label
-        {
-            Text = text,
-            AutoSize = true,
-            Font = new Font("Segoe UI", 9F, bold ? FontStyle.Bold : FontStyle.Regular),
-            Margin = new Padding(0, 6, 0, 2),
-        };
-    }
-
-    public static TextBox CreateTextBox(bool multiline = false, int height = 28)
-    {
-        return new TextBox
-        {
-            Dock = DockStyle.Top,
-            Height = height,
-            Multiline = multiline,
-            Font = new Font("Segoe UI", 9F),
-            Margin = new Padding(0, 0, 0, 8),
-        };
+        if (primary) AppTheme.StylePrimaryButton(button);
+        else AppTheme.StyleSecondaryButton(button);
+        return button;
     }
 
     public static void ShowError(string message) =>
@@ -51,32 +30,37 @@ internal sealed class FileManagerControl : UserControl
 {
     private readonly string _category;
     private readonly bool _allowManage;
-    private readonly ListView _list = new() { Dock = DockStyle.Fill, View = View.Details, FullRowSelect = true };
-    private readonly Button _btnAdd = UiFactory.CreateButton("Dosya Ekle", 110);
-    private readonly Button _btnOpen = UiFactory.CreateButton("Aç", 80);
-    private readonly Button _btnDelete = UiFactory.CreateButton("Sil", 80);
+    private readonly ListView _list = new() { Dock = DockStyle.Fill, View = View.Details, FullRowSelect = true, BorderStyle = BorderStyle.FixedSingle, Font = AppTheme.BodyFont };
+    private readonly Button _btnAdd = UiFactory.CreateButton("Dosya Ekle", primary: false, width: 110);
+    private readonly Button _btnOpen = UiFactory.CreateButton("Aç", primary: false, width: 80);
+    private readonly Button _btnDelete = UiFactory.CreateButton("Sil", primary: false, width: 80);
 
     public FileManagerControl(string category, bool allowManage)
     {
         _category = category;
         _allowManage = allowManage;
+        BackColor = AppTheme.Surface;
+        Padding = new Padding(12);
 
-        _list.Columns.Add("Dosya", 280);
-        _list.Columns.Add("Tarih", 160);
+        _list.Columns.Add("Dosya", 320);
+        _list.Columns.Add("Tarih", 180);
+        _list.BackColor = AppTheme.Surface;
 
-        var top = new FlowLayoutPanel
+        var top = new Panel
         {
             Dock = DockStyle.Top,
-            Height = 42,
-            Padding = new Padding(0, 0, 0, 6),
-            WrapContents = false,
+            Height = 48,
+            Padding = new Padding(0, 0, 0, 8),
+            BackColor = AppTheme.Surface,
         };
-        top.Controls.Add(_btnOpen);
+        var flow = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.LeftToRight, WrapContents = false };
+        flow.Controls.Add(_btnOpen);
         if (_allowManage)
         {
-            top.Controls.Add(_btnAdd);
-            top.Controls.Add(_btnDelete);
+            flow.Controls.Add(_btnAdd);
+            flow.Controls.Add(_btnDelete);
         }
+        top.Controls.Add(flow);
 
         Controls.Add(_list);
         Controls.Add(top);
