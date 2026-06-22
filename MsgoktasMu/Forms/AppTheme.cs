@@ -78,7 +78,7 @@ internal static class AppTheme
             Width = width,
             Height = height,
             BackColor = Surface,
-            Margin = new Padding(0, 0, 14, 14),
+            Margin = new Padding(8, 8, 16, 16),
             Padding = new Padding(14),
             BorderStyle = BorderStyle.FixedSingle,
             Cursor = Cursors.Hand,

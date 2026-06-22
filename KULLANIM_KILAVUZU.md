@@ -5,9 +5,6 @@
    veya `MsgoktasMu` klasöründe `dotnet run` komutunu çalıştırın
 2. İlk açılışta veritabanı (`msgoktas_mu.db`) otomatik oluşur
 
-## Varsayılan Admin Hesabı
-- **Kullanıcı adı:** admin  
-- **Şifre:** admin123  
 
 ---
 

@@ -67,7 +67,7 @@ internal sealed class HelpForm : Form
             • Kullanıcı — Kayıt sırasında kurum/şantiye bilgisi girer
             • Admin — Tüm kayıtları yönetir
 
-            Varsayılan admin: admin / admin123
+            Admin giriş bilgileri sistem yöneticisi tarafından verilir.
             """;
 
         public const string Ziyaretci =

@@ -53,7 +53,7 @@ internal sealed class HomeForm : Form
         {
             Text = "Mimar Sinan Göktaş",
             Dock = DockStyle.Left,
-            Width = 240,
+            Width = 280,
             Font = AppTheme.TitleFont,
             ForeColor = AppTheme.Accent,
             TextAlign = ContentAlignment.MiddleLeft,
@@ -205,8 +205,7 @@ internal sealed class HomeForm : Form
             Dock = DockStyle.Top,
             Height = 150,
             BackColor = AppTheme.Accent,
-            Padding = new Padding(24, 22, 24, 18),
-            Margin = new Padding(0, 0, 0, 18),
+            Padding = new Padding(24, 22, 24, 22),
         };
         hero.Controls.Add(new Label
         {
@@ -227,19 +226,31 @@ internal sealed class HomeForm : Form
 
         var cards = new FlowLayoutPanel
         {
-            Dock = DockStyle.Top,
             AutoSize = true,
             WrapContents = true,
-            Margin = new Padding(0, 0, 0, 18),
+            Padding = new Padding(4, 8, 4, 8),
+            BackColor = AppTheme.Background,
         };
         cards.Controls.Add(MakeCard("Genel Bilgiler", "Şantiye listesi ve dosyalar", () => ShowFiles("general")));
         cards.Controls.Add(MakeCard("Günlük Raporlar", "Yüklenen rapor dosyaları", () => ShowFiles("reports")));
         cards.Controls.Add(MakeCard("Çizelge", "İş programı dosyaları", () => ShowFiles("schedule")));
         cards.Controls.Add(MakeCard("Harita", "Ofis konumu", ShowMap));
 
+        var cardsSection = new Panel
+        {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            Padding = new Padding(0, 20, 0, 24),
+            BackColor = AppTheme.Background,
+        };
+        cards.Dock = DockStyle.Top;
+        cardsSection.Controls.Add(cards);
+
         var about = AppTheme.CreateGroupBox("Hakkımızda");
         about.Dock = DockStyle.Top;
         about.Height = 110;
+        about.Margin = new Padding(0, 0, 0, 0);
         about.Controls.Add(new Label
         {
             Dock = DockStyle.Fill,
@@ -251,6 +262,7 @@ internal sealed class HomeForm : Form
         var services = AppTheme.CreateGroupBox("Hizmetler");
         services.Dock = DockStyle.Top;
         services.Height = 130;
+        services.Padding = new Padding(14, 18, 14, 14);
         services.Controls.Add(new Label
         {
             Dock = DockStyle.Fill,
@@ -260,10 +272,16 @@ internal sealed class HomeForm : Form
         });
 
         _content.Controls.Add(services);
+        _content.Controls.Add(CreateSectionGap(18));
         _content.Controls.Add(about);
-        _content.Controls.Add(cards);
+        _content.Controls.Add(CreateSectionGap(18));
+        _content.Controls.Add(cardsSection);
+        _content.Controls.Add(CreateSectionGap(22));
         _content.Controls.Add(hero);
     }
+
+    private static Panel CreateSectionGap(int height) =>
+        new Panel { Dock = DockStyle.Top, Height = height, BackColor = AppTheme.Background };
 
     private Panel MakeCard(string title, string desc, Action action)
     {
