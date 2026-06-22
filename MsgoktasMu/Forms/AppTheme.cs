@@ -125,10 +125,23 @@ internal static class AppTheme
             Text = text,
             Font = LabelFont,
             ForeColor = Text,
-            AutoSize = false,
-            Dock = DockStyle.Fill,
-            TextAlign = ContentAlignment.MiddleLeft,
-            Padding = new Padding(0, 6, 8, 0),
+            AutoSize = true,
+            Anchor = AnchorStyles.Top | AnchorStyles.Left,
+            Margin = new Padding(0, 10, 16, 10),
+            MaximumSize = new Size(132, 0),
+        };
+    }
+
+    public static Label CreateValueLabel(string text)
+    {
+        return new Label
+        {
+            Text = text,
+            Font = BodyFont,
+            ForeColor = Text,
+            AutoSize = true,
+            Anchor = AnchorStyles.Top | AnchorStyles.Left,
+            Margin = new Padding(0, 10, 0, 10),
         };
     }
 
@@ -163,25 +176,39 @@ internal static class AppTheme
         return grid;
     }
 
+    public static void AddDisplayRow(TableLayoutPanel grid, int row, string labelText, string value, int valueMaxWidth = 320)
+    {
+        grid.Controls.Add(CreateFieldLabel(labelText), 0, row);
+        var valueLabel = CreateValueLabel(value);
+        valueLabel.MaximumSize = new Size(valueMaxWidth, 0);
+        grid.Controls.Add(valueLabel, 1, row);
+    }
+
     public static void AddFormRow(TableLayoutPanel grid, int row, string labelText, Control input, string? hint = null)
     {
         grid.Controls.Add(CreateFieldLabel(labelText), 0, row);
 
         if (string.IsNullOrEmpty(hint))
         {
-            input.Dock = DockStyle.Top;
-            input.Margin = new Padding(0, 4, 0, 12);
-            input.MinimumSize = new Size(0, 30);
+            input.Dock = DockStyle.None;
+            input.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            input.Margin = new Padding(0, 6, 0, 12);
+            input.MinimumSize = new Size(200, 30);
             grid.Controls.Add(input, 1, row);
             return;
         }
 
-        var wrap = new Panel { Dock = DockStyle.Top, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink };
-        input.Dock = DockStyle.Top;
-        input.Margin = new Padding(0, 4, 0, 0);
-        input.MinimumSize = new Size(0, 30);
+        var wrap = new Panel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
+        input.Dock = DockStyle.None;
+        input.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+        input.Margin = new Padding(0, 6, 0, 0);
+        input.MinimumSize = new Size(200, 30);
         wrap.Controls.Add(input);
-        wrap.Controls.Add(CreateHintLabel(hint));
+        var hintLabel = CreateHintLabel(hint);
+        hintLabel.Dock = DockStyle.None;
+        hintLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+        hintLabel.Margin = new Padding(0, 4, 0, 8);
+        wrap.Controls.Add(hintLabel);
         grid.Controls.Add(wrap, 1, row);
     }
 }

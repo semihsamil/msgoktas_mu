@@ -350,7 +350,7 @@ internal sealed class HomeForm : Form
         {
             var sitesBox = AppTheme.CreateGroupBox("Şantiyeler");
             sitesBox.Dock = DockStyle.Top;
-            sitesBox.Height = 240;
+            sitesBox.Height = 260;
             sitesBox.Controls.Add(BuildSitesPanel());
             _content.Controls.Add(filesHost);
             _content.Controls.Add(sitesBox);
@@ -373,9 +373,9 @@ internal sealed class HomeForm : Form
             BorderStyle = BorderStyle.None,
             Font = AppTheme.BodyFont,
         };
-        list.Columns.Add("Şantiye Adı", 220);
-        list.Columns.Add("Adres", 380);
-        list.Columns.Add("İşlem", 90);
+        list.Columns.Add("Şantiye Adı", 160);
+        list.Columns.Add("Adres", 280);
+        list.Columns.Add("İşlem", 100);
 
         foreach (var site in LocalDatabase.GetSites())
         {
@@ -420,10 +420,13 @@ internal sealed class HomeForm : Form
         box.Height = 180;
         box.Controls.Add(new Label
         {
-            Dock = DockStyle.Fill,
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            MaximumSize = new Size(900, 0),
             Text = $"Etiket: {settings.MapLabel}\r\nAdres: {settings.ContactAddress}\r\nEnlem: {settings.MapLat}   Boylam: {settings.MapLng}",
             Font = AppTheme.BodyFont,
             ForeColor = AppTheme.Text,
+            Padding = new Padding(0, 4, 0, 0),
         });
 
         var btn = UiFactory.CreateButton("Google Haritada Aç", primary: true, width: 170);
@@ -451,10 +454,13 @@ internal sealed class HomeForm : Form
         box.Height = 130;
         box.Controls.Add(new Label
         {
-            Dock = DockStyle.Fill,
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            MaximumSize = new Size(900, 0),
             Text = $"E-posta: {settings.ContactEmail}\r\nTelefon: {settings.ContactPhone}\r\nAdres: {settings.ContactAddress}",
             Font = AppTheme.BodyFont,
             ForeColor = AppTheme.Text,
+            Padding = new Padding(0, 4, 0, 0),
         });
         _content.Controls.Add(box);
         _content.Controls.Add(header);

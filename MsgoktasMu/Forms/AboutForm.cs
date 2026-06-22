@@ -15,7 +15,9 @@ internal sealed class AboutForm : Form
         var panel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(24), BackColor = AppTheme.Surface, BorderStyle = BorderStyle.FixedSingle };
         panel.Controls.Add(new Label
         {
-            Dock = DockStyle.Fill,
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            MaximumSize = new Size(400, 0),
             Text =
                 """
                 Mimar Sinan Göktaş
