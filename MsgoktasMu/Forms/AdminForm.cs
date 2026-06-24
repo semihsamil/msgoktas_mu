@@ -102,7 +102,7 @@ internal sealed class AdminForm : Form
 
         _siteName = AppTheme.CreateInput(placeholder: "Zorunlu alan");
         _siteAddress = AppTheme.CreateInput(placeholder: "Adres");
-        _sitePhone = AppTheme.CreateInput(placeholder: "Telefon");
+        _sitePhone = AppTheme.CreateInput(placeholder: "+90 5XXXXXXXXX");
         _siteLat = AppTheme.CreateInput(placeholder: "39.7477");
         _siteLng = AppTheme.CreateInput(placeholder: "37.0179");
         _siteDescription = AppTheme.CreateMultilineInput(44);
@@ -115,6 +115,9 @@ internal sealed class AdminForm : Form
         AppTheme.AddFormRow(grid, 4, "Boylam", _siteLng);
         AppTheme.AddFormRow(grid, 5, "Açıklama", _siteDescription);
         formBox.Controls.Add(grid);
+
+        InputFilters.AttachTextName(_siteName);
+        InputFilters.AttachMobilePhone(_sitePhone, optional: true);
 
         var actionBar = new Panel
         {
@@ -217,6 +220,8 @@ internal sealed class AdminForm : Form
         _usersGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "ExtraNote", HeaderText = "Not" });
         _usersGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Id", Visible = false });
 
+        _usersGrid.EditingControlShowing += UsersGrid_EditingControlShowing;
+
         var buttons = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 42, Padding = new Padding(8, 8, 8, 0) };
         var btnReload = UiFactory.CreateButton("Yenile", primary: false, width: 90);
         btnReload.Click += (_, _) => ReloadUsers();
@@ -263,8 +268,8 @@ internal sealed class AdminForm : Form
 
         _contactEmail = AppTheme.CreateInput(placeholder: "info@ornek.com");
         _contactEmail.Text = settings.ContactEmail;
-        _contactPhone = AppTheme.CreateInput(placeholder: "+90 346 ...");
-        _contactPhone.Text = settings.ContactPhone;
+        _contactPhone = AppTheme.CreateInput(placeholder: "+90 5XXXXXXXXX");
+        _contactPhone.Text = ValidationHelper.ToMobilePhoneFieldValue(settings.ContactPhone);
         _contactAddress = AppTheme.CreateInput(placeholder: "Adres");
         _contactAddress.Text = settings.ContactAddress;
         _mapLat = AppTheme.CreateInput(placeholder: "39.7477");
@@ -292,6 +297,8 @@ internal sealed class AdminForm : Form
         panel.Controls.Add(buttons);
         panel.Controls.Add(grid);
 
+        InputFilters.AttachMobilePhone(_contactPhone);
+
         page.Controls.Add(panel);
         return page;
     }
@@ -317,7 +324,7 @@ internal sealed class AdminForm : Form
         _editingSiteId = site.Id;
         _siteName!.Text = site.Name;
         _siteAddress!.Text = site.Address;
-        _sitePhone!.Text = site.Phone;
+        _sitePhone!.Text = ValidationHelper.ToMobilePhoneFieldValue(site.Phone);
         _siteLat!.Text = site.Lat;
         _siteLng!.Text = site.Lng;
         _siteDescription!.Text = site.Description;
@@ -332,7 +339,7 @@ internal sealed class AdminForm : Form
         _suppressSiteListEvent = false;
         _siteName!.Text = "";
         _siteAddress!.Text = "";
-        _sitePhone!.Text = "";
+        InputFilters.ResetMobilePhone(_sitePhone!);
         _siteLat!.Text = "";
         _siteLng!.Text = "";
         _siteDescription!.Text = "";
@@ -358,9 +365,9 @@ internal sealed class AdminForm : Form
 
         var input = new ConstructionSiteInput
         {
-            Name = _siteName.Text,
+            Name = _siteName.Text.Trim(),
             Address = _siteAddress!.Text,
-            Phone = _sitePhone!.Text,
+            Phone = InputFilters.ReadMobilePhone(_sitePhone!),
             Lat = _siteLat!.Text,
             Lng = _siteLng!.Text,
             Description = _siteDescription!.Text,
@@ -439,7 +446,9 @@ internal sealed class AdminForm : Form
         var userErr = ValidationHelper.ValidateUsername(user.Username)
             ?? ValidationHelper.ValidatePassword(user.Password)
             ?? ValidationHelper.ValidateRole(user.Role)
-            ?? ValidationHelper.ValidateFullNameOptional(user.FullName);
+            ?? ValidationHelper.ValidateFullNameOptional(user.FullName)
+            ?? ValidationHelper.ValidateTextNameOptional(user.SiteName, "Şantiye adı")
+            ?? ValidationHelper.ValidateTextNameOptional(user.CompanyName, "Kurum / firma");
         var phoneErr = ValidationHelper.ValidatePhoneOptional(user.Phone);
         if (userErr != null || phoneErr != null)
         {
@@ -483,7 +492,7 @@ internal sealed class AdminForm : Form
             LocalDatabase.SaveSettings(new AppSettings
             {
                 ContactEmail = _contactEmail!.Text.Trim(),
-                ContactPhone = _contactPhone!.Text.Trim(),
+                ContactPhone = ValidationHelper.NormalizeMobilePhone(_contactPhone!.Text),
                 ContactAddress = _contactAddress!.Text.Trim(),
                 MapLat = _mapLat!.Text.Trim(),
                 MapLng = _mapLng!.Text.Trim(),
@@ -494,6 +503,25 @@ internal sealed class AdminForm : Form
         catch (Exception ex)
         {
             UiFactory.ShowError(ex.Message);
+        }
+    }
+
+    private void UsersGrid_EditingControlShowing(object? sender, DataGridViewEditingControlShowingEventArgs e)
+    {
+        if (e.Control is not TextBox box || _usersGrid?.CurrentCell == null)
+            return;
+
+        box.Tag = null;
+        switch (_usersGrid.CurrentCell.OwningColumn?.Name)
+        {
+            case "Phone":
+                InputFilters.AttachMobilePhone(box, optional: true);
+                break;
+            case "FullName":
+            case "SiteName":
+            case "CompanyName":
+                InputFilters.AttachTextName(box);
+                break;
         }
     }
 }

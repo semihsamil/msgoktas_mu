@@ -1,5 +1,7 @@
 namespace MsgoktasMu.Core;
 
+using System.Text.RegularExpressions;
+
 internal static class AuthSession
 {
     public static UserSession? Current { get; private set; }
@@ -42,19 +44,56 @@ internal static class ValidationHelper
 
     public static string? ValidatePhone(string phone)
     {
-        if (string.IsNullOrWhiteSpace(phone))
+        phone = phone.Trim();
+        if (string.IsNullOrWhiteSpace(phone) || phone == InputFilters.MobilePhonePrefix)
             return "Telefon zorunlu";
-        if (!System.Text.RegularExpressions.Regex.IsMatch(phone.Trim(), @"^\+90 5\d{9}$"))
+        if (!System.Text.RegularExpressions.Regex.IsMatch(phone, @"^\+90 5\d{9}$"))
             return "Telefon formatı +90 5XXXXXXXXX olmalı";
         return null;
     }
 
     public static string? ValidatePhoneOptional(string phone)
     {
-        if (string.IsNullOrWhiteSpace(phone))
+        phone = phone.Trim();
+        if (string.IsNullOrWhiteSpace(phone) || phone == InputFilters.MobilePhonePrefix)
             return null;
         return ValidatePhone(phone);
     }
+
+    public static string NormalizeMobilePhone(string? raw)
+    {
+        const string prefix = InputFilters.MobilePhonePrefix;
+        var digitsOnly = Regex.Replace(raw ?? "", @"\D", "");
+        string rest;
+        if (digitsOnly.StartsWith("905", StringComparison.Ordinal))
+            rest = digitsOnly[3..];
+        else if (digitsOnly.StartsWith('5'))
+            rest = digitsOnly[1..];
+        else
+            rest = digitsOnly;
+
+        if (rest.Length > 9)
+            rest = rest[..9];
+        return prefix + rest;
+    }
+
+    public static string MobilePhoneForSave(string? raw)
+    {
+        var normalized = NormalizeMobilePhone(raw);
+        return normalized == InputFilters.MobilePhonePrefix ? "" : normalized;
+    }
+
+    public static string ToMobilePhoneFieldValue(string? stored)
+    {
+        if (string.IsNullOrWhiteSpace(stored))
+            return InputFilters.MobilePhonePrefix;
+        var trimmed = stored.Trim();
+        if (Regex.IsMatch(trimmed, @"^\+90 5\d{9}$"))
+            return trimmed;
+        return NormalizeMobilePhone(trimmed);
+    }
+
+    public static string StripDigits(string value) => Regex.Replace(value, @"\d", "");
 
     public static string? ValidateSite(ConstructionSiteInput input, bool isCreate)
     {
@@ -63,8 +102,14 @@ internal static class ValidationHelper
             return "Şantiye adı zorunlu";
         if (!string.IsNullOrEmpty(name) && (name.Length < 2 || name.Length > 100))
             return "Şantiye adı 2-100 karakter olmalı";
+        var nameTextErr = ValidateTextNameOptional(name, "Şantiye adı");
+        if (nameTextErr != null)
+            return nameTextErr;
         if (input.Address.Length > 200)
             return "Adres en fazla 200 karakter olabilir";
+        var phoneErr = ValidatePhoneOptional(input.Phone);
+        if (phoneErr != null)
+            return phoneErr;
         if (input.Phone.Length > 30)
             return "Telefon en fazla 30 karakter olabilir";
         if (input.Description.Length > 500)
@@ -78,10 +123,18 @@ internal static class ValidationHelper
 
     public static string? ValidateFullNameOptional(string fullName)
     {
-        if (string.IsNullOrWhiteSpace(fullName))
+        return ValidateTextNameOptional(fullName, "Ad soyad");
+    }
+
+    public static string? ValidateTextNameOptional(string value, string fieldLabel)
+    {
+        if (string.IsNullOrWhiteSpace(value))
             return null;
-        if (fullName.Trim().Length < 2 || fullName.Trim().Length > 80)
-            return "Ad soyad 2-80 karakter olmalı";
+        value = value.Trim();
+        if (value.Length < 2 || value.Length > 80)
+            return $"{fieldLabel} 2-80 karakter olmalı";
+        if (Regex.IsMatch(value, @"\d"))
+            return $"{fieldLabel} alanına rakam yazılamaz";
         return null;
     }
 
@@ -93,8 +146,9 @@ internal static class ValidationHelper
             return "Geçerli bir e-posta adresi girin";
         if (string.IsNullOrWhiteSpace(settings.ContactPhone))
             return "Telefon zorunlu";
-        if (settings.ContactPhone.Length > 30)
-            return "Telefon en fazla 30 karakter olabilir";
+        var phoneErr = ValidatePhone(settings.ContactPhone);
+        if (phoneErr != null)
+            return phoneErr;
         if (settings.ContactAddress.Length > 200)
             return "Adres en fazla 200 karakter olabilir";
         if (string.IsNullOrWhiteSpace(settings.MapLat) || !double.TryParse(settings.MapLat.Replace(',', '.'), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out _))

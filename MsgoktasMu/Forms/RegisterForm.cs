@@ -114,6 +114,10 @@ internal sealed class RegisterForm : Form
         root.Controls.Add(title);
 
         Controls.Add(root);
+        InputFilters.AttachTextName(_fullName);
+        InputFilters.AttachMobilePhone(_phone);
+        InputFilters.AttachTextName(_siteName);
+        InputFilters.AttachTextName(_companyName);
         UpdateCustomerVisibility();
     }
 
@@ -128,7 +132,7 @@ internal sealed class RegisterForm : Form
         var username = _username.Text.Trim();
         var password = _password.Text;
         var password2 = _password2.Text;
-        var phone = _phone.Text.Trim();
+        var phone = InputFilters.ReadMobilePhone(_phone);
 
         if (password != password2)
         {
@@ -139,9 +143,11 @@ internal sealed class RegisterForm : Form
         var userErr = ValidationHelper.ValidateUsername(username) ?? ValidationHelper.ValidatePassword(password);
         var phoneErr = ValidationHelper.ValidatePhone(phone);
         var nameErr = ValidationHelper.ValidateFullNameOptional(_fullName.Text.Trim());
-        if (userErr != null || phoneErr != null || nameErr != null)
+        var siteErr = role == "is_yapilan" ? ValidationHelper.ValidateTextNameOptional(_siteName.Text.Trim(), "Şantiye adı") : null;
+        var companyErr = role == "is_yapilan" ? ValidationHelper.ValidateTextNameOptional(_companyName.Text.Trim(), "Kurum / firma") : null;
+        if (userErr != null || phoneErr != null || nameErr != null || siteErr != null || companyErr != null)
         {
-            _status.Text = userErr ?? phoneErr ?? nameErr ?? "Geçersiz bilgi";
+            _status.Text = userErr ?? phoneErr ?? nameErr ?? siteErr ?? companyErr ?? "Geçersiz bilgi";
             return;
         }
 

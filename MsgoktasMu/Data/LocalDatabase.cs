@@ -9,7 +9,7 @@ internal static class LocalDatabase
     private static readonly Dictionary<string, string> DefaultSettings = new()
     {
         ["contact_email"] = "info@mimarsinangoktas.com",
-        ["contact_phone"] = "+90 346 000 00 00",
+        ["contact_phone"] = "+90 5555555555",
         ["contact_address"] = "Sivas, Türkiye",
         ["map_lat"] = "39.7477",
         ["map_lng"] = "37.0179",

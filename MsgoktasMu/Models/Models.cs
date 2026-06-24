@@ -38,7 +38,7 @@ internal sealed class ConstructionSite
 internal sealed class AppSettings
 {
     public string ContactEmail { get; set; } = "info@mimarsinangoktas.com";
-    public string ContactPhone { get; set; } = "+90 346 000 00 00";
+    public string ContactPhone { get; set; } = "+90 5555555555";
     public string ContactAddress { get; set; } = "Sivas, Türkiye";
     public string MapLat { get; set; } = "39.7477";
     public string MapLng { get; set; } = "37.0179";
